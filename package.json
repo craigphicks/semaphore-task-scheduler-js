@@ -1,0 +1,22 @@
+{
+  "name": "semaphore-task-scheduler",
+  "version": "1.0.0",
+  "description": "throttle number of simulataneous tasks similarly (but not identically) to the traditional countable-semaphore paradigm used in multi-threading. ",
+  "main": "index.js",
+  "scripts": {
+    "test": "node check-node-version && node test-semaphore-task-scheduler.js",
+    "postinstall": "node check-node-version"
+  },
+  "engines": {
+    "node": ">=12.9"
+  },
+  "keywords": [
+    "task-scheduling",
+    "semaphore"
+  ],
+  "author": "craigphicks",
+  "license": "ISC",
+  "devDependencies": {
+    "semver": "^7.3.4"
+  }
+}
