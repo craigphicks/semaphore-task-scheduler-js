@@ -38,6 +38,7 @@ class SemaphoreTaskScheduler{
     this._onEmptyCallback=null;
     this._onTaskEndCallback=null;
     this._onTaskErrorCallback=null;
+    this._endFlag=false;
   }
   addTask(func,...args){
     let p=(async()=>{
@@ -55,7 +56,8 @@ class SemaphoreTaskScheduler{
       } finally {
         this._sem.signal();
         this._numFinished++;
-        if (this._onEmptyCallback && this.getWaitingCount()==0 && this.getWorkingCount()==0){
+        if (this._onEmptyCallback && this._emptyFlag
+          && this.getWaitingCount()==0 && this.getWorkingCount()==0){
           this._onEmptyCallback();
         }
       }
@@ -64,6 +66,9 @@ class SemaphoreTaskScheduler{
     if (this._taskq)
       this._taskq.push(p);
     return p;
+  }
+  addEnd(){
+    this._endFlag=true;
   }
   // Caution: If awaitAll is called before all the tasks 
   //   have been added, then it may return before all the 
@@ -79,11 +84,11 @@ class SemaphoreTaskScheduler{
    + 'is prerequisite for waitAll()/waitAllSettled() usage.';
   }
   async waitAll(){
-    if (!this._taskq) throw new Error(this._waiterrmsg());
+    if (!this._taskq) throw new Error(SemaphoreTaskScheduler._waiterrmsg());
     return await Promise.all(this._taskq);
   }
   async waitAllSettled(){
-    if (!this._taskq) throw new Error(this._waiterrmsg());
+    if (!this._taskq) throw new Error(SemaphoreTaskScheduler._waiterrmsg());
     return await Promise.allSettled(this._taskq);
   }
 }

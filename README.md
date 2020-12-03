@@ -66,6 +66,8 @@ working:0,waiting:0,finished:5
      - `...args` are arbitray arguments to be applied to `asyncFunc` on execution
      - if the task throws, the semaphone will be correctly incremented and normal processing may continue if the exception is handled correctly.  For example, using `waitAllSettled()` will prevent exceptions from rising.
      - void return 
+  - `addEnd()`
+     - Guarantee that no more tasks will be added with `addTask(...)`.  See `onEmpty(...)`. 
   - `getWorkingCount()`
      - Returns the number of currently working tasks.
   - `getWaitingCount()`
@@ -78,11 +80,14 @@ working:0,waiting:0,finished:5
      - The provided callback will be called for each task which throws an exception, with that exception as the callback argument.  The error will not be further propogated.
      - When the `onTaskError` callback is NOT set, the error WILL be propogated 
   - `onEmpty(callback)`
-     - The provided callback will called each time the sum of the number of working tasks and waiting tasks transitions to zero.  If that sum is zero when set with `onEmpty`, then it will be called, because it is not a transition.     
+     - Provide a callback `callback` to be called when the tasks are all complete.
+     - A necessary condition to invoke `callback` is that `addEnd()` has been called. `addEnd()` is a guarantee that no more tasks will be added with `addTask(...)`. The callback set with `onEmpty` will never be invoked until after `addEnd()` has been called, even if there are no working or waiting tasks left.
      - This provides an alternative to using `async waitAll()`/`async waitAllSettled()`, while not requiring the contructor parameter `useWaitAll` be set to `true`, so there is no risk of memory over-use.  
   - `async waitAll()`/`async waitAllSettled()`
-     - can only be used when the contructor parameter `useWaitAll` was `true`, which enables an internal queue.
-     - CAUTION: using the internal queue will result in ever increasing memory usage.  If that is a problem, use `onTaskEnd`, `onTaskError`, and `onEmpty` instead.
+     - can only be used when the contructor parameter `useWaitAll` was `true`, which enables an internal queue which will store and keep every task added, even after the task has finished working.
+     - CAUTION: using the internal queue will result in ever increasing memory usage.  If that is a problem, two alternatives are:
+        - use callbacks via `onTaskEnd`, `onTaskError`, and `onEmpty`.
+        - use the asynchronous iterator paradigm provided with `AsyncIterTaskScheduler`.
      - performs respectively `Promise.all(...)`/`Promise.allSettled(...)` on the internal queue of all tasks, and returns that result.
      - `waitAll` doesn't catch exceptions, whereas `waitAllSettled` catches them to permit the other tasks to finish.
 
