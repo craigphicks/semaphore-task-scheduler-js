@@ -54,48 +54,64 @@ entering 4
 working:0,waiting:0,finished:5
 ```
 
-#APIs
+# APIs
 
 ## `TaskScheduler` API
-
+  - `const {TaskScheduler}=require('task-scheduler')`
   - constructor `TaskScheduler(initCount,useWaitAll)`
-     - `initCount` : integer - maximum number of tasks allowed to execute simultaneously. No default value.
-     - `queueTask` : boolean - if true than each added task will be stored in a queue for the sole reason that `waitAll` or `waitAllSettled` can be called. Default is `false`.  See `waitAll` or `waitAllSettled` for more details.
-     - Caution: `true` could result in excessive memory usage.  
-     - Returns the instance of `TaskScheduler`
+    - `initCount` : integer 
+      - maximum number of tasks allowed to execute simultaneously. No default value.
+    - `useWaitAll` : boolean 
+      - if `true` then each added task will be stored in a queue for the sole purpose of enabling the `waitAll` or `waitAllSettled` functions. Default is `false`.  See `waitAll` or `waitAllSettled` for more details.
+      - Caution: `true` could result in excessive memory usage.  
+      - Returns an instance of `TaskScheduler`
   - `addTask(asyncFunc, ...args)`
-     - `asyncFunc` is an asynchronous function to be executed when constraints permit.
-     - `...args` are arbitray arguments to be applied to `asyncFunc` on execution
-     - If the task throws an exception is always caught and will be passed to the caller through any/all of the the follow interfaces
-       - via the callback `callback(e)` set with `onTaskError()` 
-       - `waitAll()`
-       - `waitAllSettled()`
-        See each section for details on timing.
-     - Returns void. 
+    - `asyncFunc` is an asynchronous function to be executed when the count constraint permits.
+    - `...args` are arbitray arguments to be passed to `asyncFunc` on execution
+    - If the task throws an exception is always caught and will be passed to the caller through any/all of the the follow interfaces:
+      - via `catch`/`try` applied to the promise returned from `addTask`
+      - via the callback set with `onTaskError()` 
+      - `waitAll()`
+      - `waitAllSettled()`
+    - Any task exception is "defused* before forwarding - e.g., if the return value of `addTask` is ignored, that will never result in an unhandled exception. 
+    - Returns a promise that resolves/rejects to the tasks result/thrown-value.
   - `addEnd()`
-     - A guarantee by the caller that no more tasks will be added with `addTask(...)`.  See `onEmpty(...)` for more details.
+    - A guarantee by the caller that no more tasks will be added with `addTask(...)`.  Trying to call `addTask` again after calling `addEnd` will result in an exception.See `onEmpty(...)` for more details.
   - `getWorkingCount()`
-     - Returns the number of currently working tasks.
+    - Returns the number of currently working tasks.
   - `getWaitingCount()`
-     - Returns the number of currently waiting, yet to be executed, tasks.
+    - Returns the number of currently waiting, yet to be executed, tasks.
   - `getFinishedCount()`
-     - Returns the number of currently waiting, yet to be executed, tasks.
+    - Returns the number of currently waiting, yet to be executed, tasks.
   - `onTaskEnd(callback)`
-     - The provided callback will be called with the (await denuded) result of each task as argument, except in case of exceptions. See `onTaskError` for handling exceptions.
+    - The provided callback will be called on each task completion, with the (await denuded) result of each task as callback argument, except in case of exceptions. See `onTaskError` for handling exceptions.
+    - Usage constraints:
+      - Not required. (`addTask` returned promise, `WaitAll*` can be used instead.) 
+      - When used, must be set before first `addTask` call.
+      - Callback exceptions will become unhandled exceptions.
+      - Callbacks may be async or sync. The calling side does not `await` them.  Sync callbacks should not block.  
   - `onTaskError(callback)`
-     - The provided callback will be called for each task which throws an exception, with that exception as the callback argument.  
-     - When the `onTaskError` callback is NOT set, the error WILL be propogated 
+    - The provided callback will be called for each task which throws an exception, with that exception as the callback argument.
+    - Usage constraints: basically the same as those for `onTaskEnd`  
   - `onEmpty(callback)`
-     - Provide a callback `callback` to be called when the tasks are all complete.
-     - A necessary condition to invoke `callback` is that `addEnd()` has been called. `addEnd()` is a guarantee that no more tasks will be added with `addTask(...)`. The callback set with `onEmpty` will never be invoked until after `addEnd()` has been called, even if there are no working or waiting tasks left.
-     - This provides an alternative to using `async waitAll()`/`async waitAllSettled()`, while not requiring the contructor parameter `useWaitAll` be set to `true`, so there is no risk of memory over-use.  
+    - Provide a callback `callback` to be called when the tasks are all complete.
+    - A necessary condition to invoke `callback` is that `addEnd()` has been called. `addEnd()` is a guarantee that no more tasks will be added with `addTask(...)`. The callback set with `onEmpty` will never be invoked until after `addEnd()` has been called, even if there are no working or waiting tasks left.
+    - This provides an alternative to using `async waitAll()`/`async waitAllSettled()`, while not requiring the constructor parameter `useWaitAll` be set to `true`, so there is no risk of memory over-use.  
+    - Usage constraints: basically the same as those for `onTaskEnd`  
   - `async waitAll()`/`async waitAllSettled()`
-     - can only be used when the contructor parameter `useWaitAll` was `true`, which enables an internal queue which will store and keep every task added, even after the task has finished working.
-     - CAUTION: using the internal queue will result in ever increasing memory usage.  If that is a problem, two alternatives are:
-        - use callbacks via `onTaskEnd`, `onTaskError`, and `onEmpty`.
-        - use the asynchronous iterator paradigm provided with `AsyncIterTaskScheduler`.
-     - performs respectively `Promise.all(...)`/`Promise.allSettled(...)` on the internal queue of all tasks, and returns that result.
-     - `waitAll` doesn't catch exceptions, whereas `waitAllSettled` catches them to permit the other tasks to finish.
+    - can only be used when the constructor parameter `useWaitAll` was `true`, which enables an internal queue which will store and keep every task added, even after the task has finished working.
+    - CAUTION: using the internal queue will result in ever increasing memory usage.  If that is a problem then alternatives are:
+      - use the promises returned by `addTask`, and an `onEmpty` callback.
+      - use callbacks via `onTaskEnd`, `onTaskError`, and `onEmpty`.
+      - use the asynchronous iterator paradigm provided with the seperate `AsyncIterTaskScheduler` class in this same package.
+    - Constraints on usage:
+      - Neither required, nor mutually exclusive of other interface methods.
+      - Unlike the callback alterternatives, `waitAll/waitAllSettled` are not required to be set before the first call to `addTask`, because the internal queue provides a buffer.
+      - `waitAll` is not suitable when processing must continue after the first error.  In that case use `waitAllSettled`.
+      - Both methods use memory size proportional to total number of tasks.
+      - Behaviour:
+      - `await waitAll` will return the first task error (including from among those thrown before `waitAll` was called), or will return the array of all task results when all tasks have completed.  The returned result is equivalent to putting all the promises returned from `addTask` into an array, and passing that array to `Promise.all`.  However, `waitAll` can be called before all the tasks have completed. 
+      - `await waitAllSettled` will return when all the tasks have completed. The returned result is equivalent to putting all the promises returned from `addTask` into an array, and passing that array to `Promise.allSettled`.  However, `waitAllSettled` can be called before all the tasks have completed.
 
 ## `AsyncIterTaskScheduler` API
 
