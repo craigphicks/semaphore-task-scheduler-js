@@ -1,12 +1,12 @@
 'use strict';
-const {SemaphoreTaskScheduler}=require('./semaphore-task-scheduler.js');
+const {TaskScheduler}=require('./semaphore-task-scheduler.js');
 function snooze(t){return new Promise((r)=>{setTimeout(r,t);});}
 function status(sts){
   return `working:${sts.getWorkingCount()},`
   +`waiting:${sts.getWaitingCount()},finished:${sts.getFinishedCount()}`;
 }
 async function example(){
-  let sts=new SemaphoreTaskScheduler(2,true);
+  let sts=new TaskScheduler(2,true);
   let myfunc=async(id,ms)=>{
     console.log(`entering ${id}`);
     await snooze(ms);

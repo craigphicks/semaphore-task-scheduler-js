@@ -9,14 +9,14 @@ in multi-threading.
 Example:
 ```
 'use strict';
-const {SemaphoreTaskScheduler}=require('semaphore-task-scheduler');
+const {TaskScheduler}=require('task-scheduler');
 function snooze(t){return new Promise((r)=>{setTimeout(r,t);});}
 function status(sts){
   return `working:${sts.getWorkingCount()},`
   +`waiting:${sts.getWaitingCount()},finished:${sts.getFinishedCount()}`;
 }
 async function example(){
-  let sts=new SemaphoreTaskScheduler(2,true);
+  let sts=new TaskScheduler(2,true);
   let myfunc=async(id,ms)=>{
     console.log(`entering ${id}`);
     await snooze(ms);
@@ -54,20 +54,26 @@ entering 4
 working:0,waiting:0,finished:5
 ```
 
-#API
+#APIs
 
-- `SemaphoreTaskScheduler`
-  - constructor `SemaphoreTaskScheduler(initCount,useWaitAll)`
-     - `initCount` : integer - initial count of the semaphore. No more than this number of task will be run at once. No default
-     - `queueTask` : boolean - if true than each added task will be stored in a queue to enable `waitAll` and `waitAllSettled`. Default is `false`.  Caution: `true` could result in excessive memory usage.
-     - Returns the instance
+## `TaskScheduler` API
+
+  - constructor `TaskScheduler(initCount,useWaitAll)`
+     - `initCount` : integer - maximum number of tasks allowed to execute simultaneously. No default value.
+     - `queueTask` : boolean - if true than each added task will be stored in a queue for the sole reason that `waitAll` or `waitAllSettled` can be called. Default is `false`.  See `waitAll` or `waitAllSettled` for more details.
+     - Caution: `true` could result in excessive memory usage.  
+     - Returns the instance of `TaskScheduler`
   - `addTask(asyncFunc, ...args)`
-     - `asyncFunc` is an asynchronous function to be executed when semaphore permits
+     - `asyncFunc` is an asynchronous function to be executed when constraints permit.
      - `...args` are arbitray arguments to be applied to `asyncFunc` on execution
-     - if the task throws, the semaphone will be correctly incremented and normal processing may continue if the exception is handled correctly.  For example, using `waitAllSettled()` will prevent exceptions from rising.
-     - void return 
+     - If the task throws an exception is always caught and will be passed to the caller through any/all of the the follow interfaces
+       - via the callback `callback(e)` set with `onTaskError()` 
+       - `waitAll()`
+       - `waitAllSettled()`
+        See each section for details on timing.
+     - Returns void. 
   - `addEnd()`
-     - Guarantee that no more tasks will be added with `addTask(...)`.  See `onEmpty(...)`. 
+     - A guarantee by the caller that no more tasks will be added with `addTask(...)`.  See `onEmpty(...)` for more details.
   - `getWorkingCount()`
      - Returns the number of currently working tasks.
   - `getWaitingCount()`
@@ -77,7 +83,7 @@ working:0,waiting:0,finished:5
   - `onTaskEnd(callback)`
      - The provided callback will be called with the (await denuded) result of each task as argument, except in case of exceptions. See `onTaskError` for handling exceptions.
   - `onTaskError(callback)`
-     - The provided callback will be called for each task which throws an exception, with that exception as the callback argument.  The error will not be further propogated.
+     - The provided callback will be called for each task which throws an exception, with that exception as the callback argument.  
      - When the `onTaskError` callback is NOT set, the error WILL be propogated 
   - `onEmpty(callback)`
      - Provide a callback `callback` to be called when the tasks are all complete.
@@ -91,12 +97,16 @@ working:0,waiting:0,finished:5
      - performs respectively `Promise.all(...)`/`Promise.allSettled(...)` on the internal queue of all tasks, and returns that result.
      - `waitAll` doesn't catch exceptions, whereas `waitAllSettled` catches them to permit the other tasks to finish.
 
-- Semaphore 
-  - The semaphore class used internally is also exported
-     - `const {Semaphore}=require('semaphore-task-scheduler');`
+## `AsyncIterTaskScheduler` API
+
+
+## `Semaphore` 
+  - A utlity semaphore class 
+     - `const {Semaphore}=require('task-scheduler');`
   - constructor `Semaphore(initCount)`
-    - `initCount` is the initial semaphore count.
+     - `initCount` is the initial semaphore count.
   - `async wait()` 
      - returns void when semphore count becomes > 0, or immediately if it is already > 0.
      - The semaphore count will be decremented by 1 on return. 
   - `signal()` adds 1 to the semaphore count. 
+
