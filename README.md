@@ -1,9 +1,7 @@
 copyright 2020 craigphicks ISC license
 
 # Outline
-Throttle number of simulataneous tasks similarly (but not 
-identically) to the traditional countable-semaphore paradigm used 
-in multi-threading.
+User friendly interface(s) for scheduling multiple tasks while only allowing a certain number of tasks to enter at the same time. 
 
 # Usage 
 Example:
@@ -103,7 +101,7 @@ working:0,waiting:0,finished:5
     - CAUTION: using the internal queue will result in ever increasing memory usage.  If that is a problem then alternatives are:
       - use the promises returned by `addTask`, and an `onEmpty` callback.
       - use callbacks via `onTaskEnd`, `onTaskError`, and `onEmpty`.
-      - use the asynchronous iterator paradigm provided with the seperate `AsyncIterTaskScheduler` class in this same package.
+      - use the asynchronous iterator paradigm provided with the seperate `AsyncIter` class in this same package.
     - Constraints on usage:
       - Neither required, nor mutually exclusive of other interface methods.
       - Unlike the callback alterternatives, `waitAll/waitAllSettled` are not required to be set before the first call to `addTask`, because the internal queue provides a buffer.
@@ -113,12 +111,24 @@ working:0,waiting:0,finished:5
       - `await waitAll` will return the first task error (including from among those thrown before `waitAll` was called), or will return the array of all task results when all tasks have completed.  The returned result is equivalent to putting all the promises returned from `addTask` into an array, and passing that array to `Promise.all`.  However, `waitAll` can be called before all the tasks have completed. 
       - `await waitAllSettled` will return when all the tasks have completed. The returned result is equivalent to putting all the promises returned from `addTask` into an array, and passing that array to `Promise.allSettled`.  However, `waitAllSettled` can be called before all the tasks have completed.
 
-## `AsyncIterTaskScheduler` API
-
+## `AsyncIter` API
+  - `const {AsyncIter}=require('task-scheduler')`
+  - `new AsyncIter(initCount)`
+    - `initCount` : integer 
+      - maximum number of tasks allowed to execute simultaneously. No default value.
+  - `instance.addTask(asyncFunc, ...args):undefined`
+    - `asyncFunc` is an asynchronous function to be executed when the count constraint permits.
+    - `...args` are arbitray arguments to be passed to `asyncFunc` on execution
+    - ~If the task throws an exception is always caught and will be passed to the caller through 
+    - ~Any task exception is "defused* before forwarding - e.g., if the return value of `next()` is ignored, that will never result in an unhandled exception. 
+    - Returns undefined.
+  - `instance.addEnd()`
+    - A guarantee by the caller that no more tasks will be added with `addTask(...)`.  Trying to call `addTask` again after calling `addEnd` will result in an exception.
+  - explicit `instance.next()` or implicit `for await (iter of instance)`
 
 ## `Semaphore` 
-  - A utlity semaphore class 
-     - `const {Semaphore}=require('task-scheduler');`
+  - `const {Semaphore}=require('task-scheduler');`
+    - A utlity semaphore class 
   - constructor `Semaphore(initCount)`
      - `initCount` is the initial semaphore count.
   - `async wait()` 

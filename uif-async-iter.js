@@ -3,7 +3,7 @@
 
 const {TaskScheduler}=require('./task-scheduler.js');
 
-class AsyncIterTaskScheduler {
+class AsyncIter {
   constructor(initCount){
     this._sts=new TaskScheduler(initCount);
     this._q=[];
@@ -60,5 +60,5 @@ class AsyncIterTaskScheduler {
   }
 }
 
-module.exports.AsyncIterTaskScheduler=AsyncIterTaskScheduler;
+module.exports.AsyncIter=AsyncIter;
 

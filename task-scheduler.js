@@ -1,21 +1,8 @@
 'use strict';
-//const { clearTimeout } = require('timers');
-
-// const AsyncFunction = (async () => {}).constructor;
-// const GeneratorFunction = (function* () {}).constructor;
-
-// const isAsyncFunction = value => value instanceof AsyncFunction;
-// const isGeneratorFunction = value => value instanceof GeneratorFunction;
-
-// isAsyncFunction(async () => {}); // true
-// isGeneratorFunction(function* () {}); // true
-
-// const isAsync = myFunction[Symbol.toStringTag] === "AsyncFunction";
-
 class Semaphore{
-  constructor(initCount=0){
-    this._initCount=initCount;
-    this._count=initCount;
+  constructor(concurrentLimit=0){
+    this._concurrentLimit=concurrentLimit;
+    this._count=concurrentLimit;
     this._resolveq=[];
   }
   async wait(){
@@ -35,36 +22,42 @@ class Semaphore{
       this._count++;
   }
   getCount(){return this._count;}
-  getInitCount(){return this._initCount;}
+  getconcurrentLimit(){return this._concurrentLimit;}
   getWaitingCount(){return this._resolveq.length;}
 }
 
 class TaskScheduler{
-  constructor(initCount,useWaitAll=false){
-    this._sem=new Semaphore(initCount);
-    if (useWaitAll)
-      this._taskq=[];
+  constructor(concurrentLimit){
+    this._usingConcurrentLimit=(concurrentLimit>0);
+    this._sem=new Semaphore(
+      this._usingConcurrentLimit?concurrentLimit:Number.MAX_SAFE_INTEGER);
     this._numAdded=0;
     this._numFinished=0;
     this._onEmptyCallback=null;
     this._onTaskEndCallback=null;
     this._onTaskErrorCallback=null;
-    this._anyError_pr=TaskScheduler._makepr();
     this._endFlag=false;
-    //this._end_pr=TaskScheduler._makepr();  NOTUSED
-    this._empty_pr=TaskScheduler._makepr();
   }
-  static _makepr(){let pr={};pr.promise=new Promise(r=>pr.resolve=r); return pr;}
+  static _makepr(){
+    let pr={};pr.promise=new Promise(r=>pr.resolve=r); return pr;
+  }
   addTask(func,...args){
     let p=(async()=>{
       await this._sem.wait();
       try {
-        let result= await func(...args);
+        let result;
+        if (func instanceof Function)
+          result = await func(...args);
+        else if (func instanceof Promise){
+          if (this._usingConcurrentLimit)
+            throw new Error(
+              'addTask, illogical to add promise when concurrent limit in use');
+          result=func; // OK
+        }
         if (this._onTaskEndCallback)
           this._onTaskEndCallback(result);
         return result;
       } catch(e) {
-        this._anyError_pr.resolve();
         if (this._onTaskErrorCallback)
           this._onTaskErrorCallback(e);
         throw e;
@@ -75,7 +68,6 @@ class TaskScheduler{
           && this.getWaitingCount()==0 && this.getWorkingCount()==0){
           if (this._onEmptyCallback)
             this._onEmptyCallback();
-          this._empty_pr.resolve();
         }
       }
     })();
@@ -88,46 +80,19 @@ class TaskScheduler{
   }
   addEnd(){
     this._endFlag=true;
-    // this section required if addEnd() is called after all task have already finished.
-    // c.f. addTask() similar code.
+    // this section required in case addEnd() is called after all 
+    // tasks have already finished, c.f. addTask() similar code.
     if (this.getWaitingCount()==0 && this.getWorkingCount()==0){
       if (this._onEmptyCallback)
         this._onEmptyCallback();
-      this._empty_pr.resolve();
     }
-
-    //this._end_pr.resolve(); NOT USED FOR WAITING
   }
-  // Caution: If awaitAll is called before all the tasks 
-  //   have been added, then it may return before all the 
-  //   tasks have finished.
   getWorkingCount(){return this._numAdded-this._sem.getWaitingCount()-this._numFinished;}
   getWaitingCount(){return this._sem.getWaitingCount();}
   getFinishedCount(){return this._numFinished;}
   onEmpty(callback){this._onEmptyCallback=callback;}
   onTaskEnd(callback){this._onTaskEndCallback=callback;}
   onTaskError(callback){this._onTaskErrorCallback=callback;}
-
-  static _waiterrmsg(){ return 'TaskScheduler arg useWaitAll=true ' 
-   + 'is prerequisite for waitAll()/waitAllSettled() usage.';
-  }
-  async waitAll(){
-    if (!this._taskq) throw new Error(TaskScheduler._waiterrmsg());
-    await Promise.race([
-      this._empty_pr.promise,// no more tasks will be completed
-      this._anyError_pr // to mimic Promise.all, return on first error
-    ]);
-    // if there was a rejected promise, a corresponding rejected
-    //   promise will also be in this._taskq
-    return await Promise.all(this._taskq);
-  }
-  async waitAllSettled(){
-    if (!this._taskq) throw new Error(TaskScheduler._waiterrmsg());
-    await this._empty_pr.promise;// no more tasks will be completed
-    return await Promise.allSettled(this._taskq);
-  }
 }
-
-
 module.exports.TaskScheduler=TaskScheduler;
 //module.exports.test_TaskScheduler=test_TaskScheduler;

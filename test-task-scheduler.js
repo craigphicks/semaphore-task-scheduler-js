@@ -12,7 +12,11 @@ function makePr(){
 
 async function test_TaskScheduler_phase1(){
   console.log("---- test_TaskScheduler_phase1 ----");
-  let sts=new TaskScheduler(2,true);
+  let sts=new TaskScheduler(2);
+  let end_pr=TaskScheduler._makepr();
+  sts.onEmpty(()=>{
+    end_pr.resolve();
+  });
   let snooze=(t)=>{return new Promise((r)=>{setTimeout(r,t);});};
   let logStatus=async()=>{
     await snooze(0);
@@ -101,6 +105,8 @@ async function test_TaskScheduler_phase1(){
   await logStatus();
   assertStatus(2,1,3);
 
+  sts.addEnd();
+
   setTimeout(async()=>{
     await myResolve(4);
     await logStatus();
@@ -114,14 +120,20 @@ async function test_TaskScheduler_phase1(){
     await logStatus();
     assertStatus(0,0,6);
   },0);
-  await sts.waitAll();
-  console.log(`awaitAll returned`);
+  //await sts.waitAll();
+  await end_pr.promise;
+  console.log(`await end_pr.promise returned`);
   await logStatus();
   assertStatus(0,0,6);
 
   console.log('==== PART2 =====');
   myWaitableReset();
-  sts=new TaskScheduler(2,true);
+  sts=new TaskScheduler(2);
+  end_pr=TaskScheduler._makepr();
+  sts.onEmpty(()=>{
+    end_pr.resolve();
+  });
+
   console.log('test with task exceptions');
   let abortAllTasks=makePr();
   sts.addTask(ftask, 0, myWaitable(), abortAllTasks.promise);
@@ -132,7 +144,8 @@ async function test_TaskScheduler_phase1(){
   assertStatus(2,1,0);
   console.log('trigger early abort abortAllTasks.resolve()');
   setTimeout(abortAllTasks.resolve,1);
-  await sts.waitAllSettled();
+  await end_pr.promise;
+  //await sts.waitAllSettled();
   console.log(`expect empty`);
   await logStatus();
   assertStatus(0,0,3);
