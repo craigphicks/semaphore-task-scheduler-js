@@ -4,7 +4,7 @@
   "description": "throttle number of simulataneous tasks similarly (but not identically) to the traditional countable-semaphore paradigm used in multi-threading. ",
   "main": "index.js",
   "scripts": {
-    "test": "node check-node-version && node test-semaphore-task-scheduler.js",
+    "test": "./script-test.sh",
     "postinstall": "node check-node-version"
   },
   "engines": {

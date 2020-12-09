@@ -7,7 +7,7 @@ async function task(id,ms,err=false){
     throw new Error(`task failed id=${id}`);
   await snooze(ms);
   console.log(`<--leave ${id}`);
-  return [id,ms];
+  return `task ${id}, took ${ms}ms`;
 }
 function exitOnBeforeExit(exitCode){
   process.on('beforeExit',async()=>{
@@ -18,8 +18,13 @@ function exitOnBeforeExit(exitCode){
       process.exit(process.exitCode);
   });
 }
-
+function makepr(){
+  let pr={};
+  pr.promise=new Promise((r)=>{pr.resolve=r;});
+  return pr;
+}
 module.exports.snooze=snooze;
 module.exports.task=task;
 module.exports.range=range;
+module.exports.makepr=makepr;
 module.exports.exitOnBeforeExit=exitOnBeforeExit;

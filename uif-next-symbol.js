@@ -1,5 +1,5 @@
-const TaskScheduler=require('./task-scheduler.js');
-class PromiseNext{
+const {TaskScheduler}=require('./task-scheduler.js');
+class NextSymbol{
   constructor({
     concurrentTaskLimit=0,
   }={}){
@@ -46,14 +46,17 @@ class PromiseNext{
   addEnd(){
     this._ts.addEnd();
   }
-  isSymbolEmpty(sym){return sym===this._symEmpty;}
-  isSymbolTaskEnd(sym){return sym===this._symTaskEnd;}
-  isSymbolTaskError(sym){return sym===this._symTaskError;}
-  promiseNextSymbol(){// this promise can be safely abandoned
+  // isSymbolEmpty(sym){return sym===this._symEmpty;}
+  // isSymbolTaskEnd(sym){return sym===this._symTaskEnd;}
+  // isSymbolTaskError(sym){return sym===this._symTaskError;}
+  symbolEmpty(){return this._symEmpty;}
+  symbolTaskEnd(){return this._symTaskEnd;}
+  symbolTaskError(){return this._symTaskError;}
+  nextSymbol(){// this promise can be safely abandoned
     return Promise.race([
-      this._error.then(()=>{return this._symTaskError;}),
-      this._result.then(()=>{return this._symTaskEnd;}),
-      this._empty.then(()=>{return this._symEmpty;}),
+      this._error.promise.then(()=>{return this._symTaskError;}),
+      this._result.promise.then(()=>{return this._symTaskEnd;}),
+      this._empty.promise.then(()=>{return this._symEmpty;}),
     ]);
   }
   // async promiseNextValue(){ // this promise canNOT be safely abandoned
@@ -66,4 +69,4 @@ class PromiseNext{
   //     return sym;    
   // }
 }
-module.exports.PromiseNext=PromiseNext;
+module.exports.NextSymbol=NextSymbol;
