@@ -209,17 +209,64 @@ async function producer(ts){
 ```
 # APIs
 ## API shared by all classes
-- `addTask(func,...args)`
+- `new <Classname>({concurrentTaskLimit=0}={})`
+  - where `<Classname>` is one of `AsyncIter`,`Callbacks`,`NextSymbol`,or `WaitAll`.
+  - `concurrentTaskLimit` is the integer number of task allowed to run concurrently, unless it is `<=0`, in which case their is no limit.  
+- `addTask(func,...args)` where `(func instanceof Function)`, or `addTask(promise)` where `(promise instanceof Promise)`
+  - in the case of constructor arg `concurrentTaskLimit>0`, 
+    - `addTask` will allow only the first form, and passing a promise will throw. 
+    - `func(...args)` will be called in the order passed, when the concurrent task limit constraint allows.  
+  - in the case of constructor arg `concurrentTaskLimit<=0`, either form is allowed.
+  - in either case, the tasks/promises are managed by the instance of `<Classname>` in a (possibly virtual) pipeline, until read from the instance consumer interface. The tasks/promises may reject while in the pipeline, and those rejections are handled to prevent unhandled promise rejections.    
 - `addEnd()`
+  - this a guarantee from the caller that `addTask` will not be called again.  It is required so the class instance knows that when the internal pipeline is drained, it has reached end-of-processing.
+- Note on task/promise resolved-value and rejected-value relative precedence.
+  - Each task/promise will terminate with either a resolved-value or a rejected-value (unless it deadlocks or otherwise fails to terminate).  Almost always(\*), a rejected-value will always take precendence over a resolved-value when both ready for the consumer.  Otherwise they are presented to the consumer in the order of teask/promise termination.  (\*)*The exception to the rule is when the consumer calls `WaitAll.waitAllSettled()`*. 
 
 ## `AsyncIter` only API
-- explicit `next()` or implicit `for await(const iter of <AsyncIter instance>)`
-
+- see [?]() for example.
+- `const {AsyncIter}=require('task-serializer')`
+- `instance=new AsyncIter({concurrentTaskLimit=0}={})`
+  - See [API shared by all classes](#api-shared-by-all-classes).
+- explicit `async instance.next()` or implicit async `for await (iter of instance)`
+  - There are 3 possible outcomes: resolved-value, rejected-value, and end-of-processing, where resolved-value and rejected-value are values determined inside the callers provided tasks/promises.
+  - case: explicit
+    - case: resolved-value
+      - returns `{done:false,value:<resolved-value>}`
+    - case: rejected-value
+      - throws `<rejected-value>`
+    - case: end-of-processing
+      - returns `{done:true}`
+  - case: implicit
+    - case: resolved-value
+      - `iter` will be the `<resolved-value>` 
+    - case: rejected-value
+      - throws `<rejected-value>`
+    - case: end-of-processing
+      - breaks from loop.
+  
 ## `NextSymbol` only API
+- see [?]() for example.
+- `const {NextSymbol}=require('task-serializer')`
+- `instance=new NextSymbol({concurrentTaskLimit=0}={})`
+  - See [API shared by all classes](#api-shared-by-all-classes).
+- `async instance.nextSymbol()`
+  Returns a value strictly equal to one of `instance.symbolTaskEnd()`, `instance.symbolTaskError()`, or `instance.symbolEnd()`.
+  - case `instance.symbolTaskEnd()`: indicates a task/promise resolved-value is ready to be read.
+  - case `instance.symbolTaskError()`: indicates a task/promise rejected-value is ready to be read.
+  - case `instance.symbolTaskEnd()`: indicates the end-of-processing has been reached.
+- `instance.getTaskEnd()`
+  - This is a sync function intended to be called immediately after `async instance.nextSymbol()` has returned a value equal to `instance.symbolTaskEnd()`
+  - It returns the next resolved-value of a task/promise in the pipeline.
+- `instance.getTaskError()`
+  - This is a sync function intended to be called immediately after `async instance.nextSymbol()` has returned a value equal to `instance.symbolTaskError()`
+  - It returns the next rejected-value of a task/promise in the pipeline.
 
 ## `WaitAll` only API
+- see [?]() for example.
 
 ## `Callbacks` only API
+- see [?]() for example.
 
 
 
