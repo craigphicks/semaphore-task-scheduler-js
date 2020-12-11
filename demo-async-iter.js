@@ -2,15 +2,8 @@
 'use strict';
 
 const {AsyncIter}=require('./uif-async-iter.js');
-const {task,snooze,range,exitOnBeforeExit}=require('./demo-lib.js');
-
-async function producer(ai){
-  range(6).forEach(async(i)=>{
-    await snooze(i*100);
-    ai.addTask(task,i.toString(),2**(10-i),(i+1)%3==0);
-    if (i==5) ai.addEnd();
-  });
-}
+const {exitOnBeforeExit,producer}
+  =require('./demo-lib.js');
 async function consumer(ai){
   do{
     try{

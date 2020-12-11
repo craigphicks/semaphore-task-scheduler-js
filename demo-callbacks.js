@@ -1,14 +1,5 @@
 const {Callbacks}=require('./uif-callbacks.js');
-const {snooze,task,exitOnBeforeExit}=require('./demo-lib.js');
-
-async function producer(ts){
-  for (let i=0; i<6; i++){
-    ts.addTask(task,i,2**(10-i),(i+1)%3==0);
-    await snooze(100);
-  }
-  ts.addEnd();
-  console.log('producer finished');
-}
+const {exitOnBeforeExit,producer}=require('./demo-lib.js');
 async function consumer(ts){
   await new Promise((resolve)=>{
     ts.onTaskEnd((result)=>{
@@ -24,10 +15,9 @@ async function consumer(ts){
   });
   console.log('consumer finished');
 }
-
 async function main(){
   let ts=new Callbacks({concurrentLimit:2});
-  return await Promise.all([
+  await Promise.all([
     consumer(ts),// consumer must initialize first
     producer(ts)
   ]);
