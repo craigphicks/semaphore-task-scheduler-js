@@ -20,21 +20,21 @@ The output interface of each of those classes differ, and are suitable for diffe
 
 | property    |`AsyncIter`|`NextSymbol`|`WaitAll`|`Callbacks`| 
 |--           |--         |--          |--       |--         |
-| internal pipeline | yes | yes        | yes     | no        |
+| post-term pipeline | yes | yes        | yes     | no        |
 | continuous vs. batch |cont | cont    | batch   | cont      |
 | control loop | yes      | yes        | no      | no        |
 | select style | no       | yes        | N/A     | N/A       |
 
 where 'property' are as follows:
-  - 'internal pipeline':
-    - Whether the class has an internal pipeline storing the finshed tasks until they are read.
+  - 'post-term pipeline':
+    - Whether the class has an internal pipeline storing the outcomes of terminated tasks/promises until they are read by the consumer.  (Note: all classes have a virtual pipeline for tasks/promises until they terminate.)
   - 'continuous vs. batch': 
-    - Batch indicates the internal pipeline holds all task until processing is finished. 
-    - Continous indicates the internal pipeline is read from during processing.
+    - Batch indicates the internal post-term pipeline holds all task until processing is finished. 
+    - Continous indicates the internal post-term pipeline is intended to be read by consumers before processing is finshed.
   - 'control loop'
     - The output may be easily read in an asynchrous control loop 
   - 'select style'
-    - The control loop condition informs an output is 'ready' without actually reading it.  This style is useful for a top level control loop integrating 'ready' conditions from many unrelated sources. (Demonstrated in example `NextSymbol` usage.)
+    - The control loop condition informs an output is 'ready' without actually reading it.  This style is useful for a top level control loop integrating 'ready' conditions from many unrelated sources. (See [`NextSymbol` usage example](#nextsymbol-usage-example).)
 
 # Usage examples
 
@@ -68,6 +68,7 @@ main()
   .then(()=>{console.log('success');process.exitCode=0;})
   .catch((e)=>{console.log('failure '+e.message);process.exitCode=1;});
 ```
+
 ## `NextSymbol` usage example
 ```js
 'use strict';
@@ -112,6 +113,7 @@ main()
   .then(()=>{console.log('success');process.exitCode=0;})
   .catch((e)=>{console.log('failure: '+e.message);process.exitCode=1;});
 ```
+
 ## `WaitAll` usage example
 ```js
 'use strict';
@@ -141,6 +143,7 @@ main()
   .then(()=>{console.log('success');process.exitCode=0;})
   .catch((e)=>{console.log('failure '+e.message);process.exitCode=1;});
 ```
+
 ## `Callbacks` usage example
 ```js
 'use strict';
@@ -172,6 +175,7 @@ main()
   .then(()=>{console.log('success');process.exitCode=0;})
   .catch((e)=>{console.log('failure '+e.message);process.exitCode=1;});
 ```
+
 ## `demo-lib.js`
 ```js
 function snooze(ms){return new Promise(r=>setTimeout(r,ms));}
@@ -264,9 +268,22 @@ async function producer(ts){
 
 ## `WaitAll` only API
 - see [?]() for example.
+- `const {WaitAll}=require('task-serializer')`
+- `instance=new WaitAll({concurrentTaskLimit=0}={})`
+  - See [API shared by all classes](#api-shared-by-all-classes).
+- `async instance.waitAll()`
+- `async instance.waitAllSettled()`
+
 
 ## `Callbacks` only API
 - see [?]() for example.
+- `const {Callbacks}=require('task-serializer')`
+- `instance=new Callbacks({concurrentTaskLimit=0}={})`
+  - See [API shared by all classes](#api-shared-by-all-classes).
+- `instance.onTaskEnd(callback)`
+- `instance.onTaskError(callback)`
+- `instance.onEmpty(callback)`
+
 
 
 
