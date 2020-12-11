@@ -1,10 +1,10 @@
 /* eslint-disable no-unused-vars */
 'use strict';
 
-const {TaskScheduler}=require('./task-scheduler.js');
+const {TaskSerializer}=require('./task-serializer.js');
 class Callbacks{
   constructor({concurrentLimit=0}={}){
-    this._ts=new TaskScheduler(concurrentLimit);
+    this._ts=new TaskSerializer(concurrentLimit);
   }
   onTaskEnd(cb){this._ts.onTaskEnd(cb);}
   onTaskError(cb){this._ts.onTaskError(cb);}

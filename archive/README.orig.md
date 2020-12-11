@@ -7,14 +7,14 @@ User friendly interface(s) for scheduling multiple tasks while only allowing a c
 Example:
 ```
 'use strict';
-const {TaskScheduler}=require('task-scheduler');
+const {TaskSerializer}=require('task-serializer');
 function snooze(t){return new Promise((r)=>{setTimeout(r,t);});}
 function status(sts){
   return `working:${sts.getWorkingCount()},`
   +`waiting:${sts.getWaitingCount()},finished:${sts.getFinishedCount()}`;
 }
 async function example(){
-  let sts=new TaskScheduler(2,true);
+  let sts=new TaskSerializer(2,true);
   let myfunc=async(id,ms)=>{
     console.log(`entering ${id}`);
     await snooze(ms);
@@ -54,15 +54,15 @@ working:0,waiting:0,finished:5
 
 # APIs
 
-## `TaskScheduler` API
-  - `const {TaskScheduler}=require('task-scheduler')`
-  - constructor `TaskScheduler(initCount,useWaitAll)`
+## `TaskSerializer` API
+  - `const {TaskSerializer}=require('task-serializer')`
+  - constructor `TaskSerializer(initCount,useWaitAll)`
     - `initCount` : integer 
       - maximum number of tasks allowed to execute simultaneously. No default value.
     - `useWaitAll` : boolean 
       - if `true` then each added task will be stored in a queue for the sole purpose of enabling the `waitAll` or `waitAllSettled` functions. Default is `false`.  See `waitAll` or `waitAllSettled` for more details.
       - Caution: `true` could result in excessive memory usage.  
-      - Returns an instance of `TaskScheduler`
+      - Returns an instance of `TaskSerializer`
   - `addTask(asyncFunc, ...args)`
     - `asyncFunc` is an asynchronous function to be executed when the count constraint permits.
     - `...args` are arbitray arguments to be passed to `asyncFunc` on execution
@@ -112,7 +112,7 @@ working:0,waiting:0,finished:5
       - `await waitAllSettled` will return when all the tasks have completed. The returned result is equivalent to putting all the promises returned from `addTask` into an array, and passing that array to `Promise.allSettled`.  However, `waitAllSettled` can be called before all the tasks have completed.
 
 ## `AsyncIter` API
-  - `const {AsyncIter}=require('task-scheduler')`
+  - `const {AsyncIter}=require('task-serializer')`
   - `new AsyncIter(initCount)`
     - `initCount` : integer 
       - maximum number of tasks allowed to execute simultaneously. No default value.
@@ -127,7 +127,7 @@ working:0,waiting:0,finished:5
   - explicit `instance.next()` or implicit `for await (iter of instance)`
 
 ## `Semaphore` 
-  - `const {Semaphore}=require('task-scheduler');`
+  - `const {Semaphore}=require('task-serializer');`
     - A utlity semaphore class 
   - constructor `Semaphore(initCount)`
      - `initCount` is the initial semaphore count.

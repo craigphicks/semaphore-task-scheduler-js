@@ -1,10 +1,5 @@
 'use strict';
-//--IF{{RELEASE}}
-//--const {Callbacks}=require('task-serializer');
-//--ELSE
-const {Callbacks}=require('./uif-callbacks.js');
-//--ENDIF
-//--STOP
+const {Callbacks}=require('task-serializer');
 const {exitOnBeforeExit,producer}=require('./demo-lib.js');
 
 async function consumer(ts){

@@ -1,11 +1,6 @@
 /* eslint-disable no-constant-condition */
 'use strict';
-//--IF{{RELEASE}}
-//--const {AsyncIter}=require('task-serializer');
-//--ELSE
-const {AsyncIter}=require('./uif-async-iter.js');
-//--ENDIF
-//--STOP
+const {AsyncIter}=require('task-serializer');
 const {exitOnBeforeExit,producer}=require('./demo-lib.js');
 
 async function consumer(ai){

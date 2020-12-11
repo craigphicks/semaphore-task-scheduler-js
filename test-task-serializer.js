@@ -1,5 +1,5 @@
 'use_strict';
-const {TaskScheduler}=require('./task-scheduler.js');
+const {TaskSerializer}=require('./task-serializer.js');
 const assert=require('assert');
 
 
@@ -10,10 +10,10 @@ function makePr(){
 }
 
 
-async function test_TaskScheduler_phase1(){
-  console.log("---- test_TaskScheduler_phase1 ----");
-  let sts=new TaskScheduler(2);
-  let end_pr=TaskScheduler._makepr();
+async function test_TaskSerializer_phase1(){
+  console.log("---- test_TaskSerializer_phase1 ----");
+  let sts=new TaskSerializer(2);
+  let end_pr=TaskSerializer._makepr();
   sts.onEmpty(()=>{
     end_pr.resolve();
   });
@@ -128,8 +128,8 @@ async function test_TaskScheduler_phase1(){
 
   console.log('==== PART2 =====');
   myWaitableReset();
-  sts=new TaskScheduler(2);
-  end_pr=TaskScheduler._makepr();
+  sts=new TaskSerializer(2);
+  end_pr=TaskSerializer._makepr();
   sts.onEmpty(()=>{
     end_pr.resolve();
   });
@@ -153,7 +153,7 @@ async function test_TaskScheduler_phase1(){
 
   console.log('==== PART3 =====');
   myWaitableReset();
-  sts=new TaskScheduler(2,false);
+  sts=new TaskSerializer(2,false);
   let empty_pr=makePr();
   let emptyCallbackSuccess=false;
   sts.onEmpty(()=>{
@@ -177,15 +177,15 @@ async function test_TaskScheduler_phase1(){
   assert.strictEqual(emptyCallbackSuccess,true,"emptyCallbackSuccess");
 }
 
-async function test_TaskScheduler_phase2(variant){
-  console.log(`---- test_TaskScheduler_phase2 variant=${variant} ----`);
+async function test_TaskSerializer_phase2(variant){
+  console.log(`---- test_TaskSerializer_phase2 variant=${variant} ----`);
   let snooze=(t)=>{return new Promise((r)=>{setTimeout(r,t);});};
   let emptyProm=makePr();
   let [onTaskEndCalled,onTaskErrorCalled,onEmptyCalled]=[0,0,0];
   let onTaskEndCb=(ret)=>{onTaskEndCalled++;console.log(`onTaskEnd ${ret}`);};
   let onTaskErrorCb=(e)=>{onTaskErrorCalled++;console.log(`onTaskEnd ${e.message}`);};
   let onEmptyCb=()=>{onEmptyCalled++;console.log(`onEmpty`);emptyProm.resolve();};
-  let sts=new TaskScheduler(2);
+  let sts=new TaskSerializer(2);
   sts.onTaskEnd(onTaskEndCb);
   sts.onTaskError(onTaskErrorCb);
   sts.onEmpty(onEmptyCb);
@@ -216,20 +216,20 @@ async function test_TaskScheduler_phase2(variant){
   console.log('phase2 success');
 }
 
-async function test_TaskScheduler(){
-  await test_TaskScheduler_phase1();
-  await test_TaskScheduler_phase2(0);
-  await test_TaskScheduler_phase2(1);
+async function test_TaskSerializer(){
+  await test_TaskSerializer_phase1();
+  await test_TaskSerializer_phase2(0);
+  await test_TaskSerializer_phase2(1);
 }
 
 
-test_TaskScheduler()
+test_TaskSerializer()
   .then(()=>{
-    console.log('test_TaskScheduler.then ');
+    console.log('test_TaskSerializer.then ');
     process.exitCode=0;
   })
   .catch((e)=>{
-    console.error('test_TaskScheduler.catch '+ e.message);
+    console.error('test_TaskSerializer.catch '+ e.message);
     process.exitCode=1;
   });
 

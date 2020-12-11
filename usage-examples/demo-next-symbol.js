@@ -1,10 +1,5 @@
 'use strict';
-//--IF{{RELEASE}}
-//--const {NextSymbol}=require('task-serializer');
-//--ELSE
-const {NextSymbol}=require('./uif-next-symbol.js');
-//--ENDIF
-//--STOP
+const {NextSymbol}=require('task-serializer');
 const {makepr,exitOnBeforeExit,producer}=require('./demo-lib.js');
 
 var somethingElse=makepr();

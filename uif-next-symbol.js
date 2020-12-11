@@ -1,16 +1,16 @@
-const {TaskScheduler}=require('./task-scheduler.js');
+const {TaskSerializer}=require('./task-serializer.js');
 class NextSymbol{
   constructor({
     concurrentTaskLimit=0,
   }={}){
-    this._ts=new TaskScheduler(concurrentTaskLimit);
-    this._result=TaskScheduler._makepr();
+    this._ts=new TaskSerializer(concurrentTaskLimit);
+    this._result=TaskSerializer._makepr();
     this._result.flag=false;
-    this._error=TaskScheduler._makepr();
+    this._error=TaskSerializer._makepr();
     this._error.flag=false;
     this._qresults=[];
     this._qerrors=[];
-    this._empty=TaskScheduler._makepr();
+    this._empty=TaskSerializer._makepr();
     this._ts.onTaskEnd((result)=>{
       this._qresults.push(result);
       this._result.flag=true;
@@ -30,13 +30,13 @@ class NextSymbol{
   }
   getTaskEnd(){
     if (!this._result.flag) throw ('getTaskEnd - not ready');
-    this._result=TaskScheduler._makepr();
+    this._result=TaskSerializer._makepr();
     this._result.flag=false;
     return this._qresults.splice(0,1)[0];
   }
   getTaskError(){
     if (!this._error.flag) throw ('getTaskError - not ready');
-    this._error=TaskScheduler._makepr();
+    this._error=TaskSerializer._makepr();
     this._error.flag=false;
     return this._qerrors.splice(0,1)[0];
   }

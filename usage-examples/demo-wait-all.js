@@ -1,10 +1,5 @@
 'use strict';
-//--IF{{RELEASE}}
-//--const {WaitAll}=require('task-serializer');
-//--ELSE
-const {WaitAll}=require('./uif-wait-all.js');
-//--ENDIF
-//--STOP
+const {WaitAll}=require('task-serializer');
 const {exitOnBeforeExit,producer}=require('./demo-lib.js');
 
 async function consumer(ts){

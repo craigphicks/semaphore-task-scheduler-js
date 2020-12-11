@@ -1,10 +1,10 @@
-const {TaskScheduler}=require('./task-scheduler.js');
+const {TaskSerializer}=require('./task-serializer.js');
 class WaitAll{
   constructor({concurrentLimit=0}={}){
-    this._ts=new TaskScheduler(concurrentLimit);
+    this._ts=new TaskSerializer(concurrentLimit);
     this._results=[];
-    this._error=TaskScheduler._makepr();
-    this._empty=TaskScheduler._makepr();
+    this._error=TaskSerializer._makepr();
+    this._empty=TaskSerializer._makepr();
     this._ts.onTaskEnd((result)=>{
       this._results.push(Promise.resolve(result));
     });

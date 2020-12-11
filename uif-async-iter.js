@@ -1,10 +1,10 @@
 'use strict';
 
-const {TaskScheduler}=require('./task-scheduler.js');
+const {TaskSerializer}=require('./task-serializer.js');
 
 class AsyncIter {
   constructor(initCount){
-    this._sts=new TaskScheduler(initCount);
+    this._sts=new TaskSerializer(initCount);
     this._q=[];
     this._qe=[];
     this._nextpr={};

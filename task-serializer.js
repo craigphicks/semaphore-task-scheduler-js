@@ -26,7 +26,7 @@ class Semaphore{
   getWaitingCount(){return this._resolveq.length;}
 }
 
-class TaskScheduler{
+class TaskSerializer{
   constructor(concurrentLimit){
     this._usingConcurrentLimit=(concurrentLimit>0);
     this._sem=new Semaphore(
@@ -94,5 +94,5 @@ class TaskScheduler{
   onTaskEnd(callback){this._onTaskEndCallback=callback;}
   onTaskError(callback){this._onTaskErrorCallback=callback;}
 }
-module.exports.TaskScheduler=TaskScheduler;
-//module.exports.test_TaskScheduler=test_TaskScheduler;
+module.exports.TaskSerializer=TaskSerializer;
+//module.exports.test_TaskSerializer=test_TaskSerializer;

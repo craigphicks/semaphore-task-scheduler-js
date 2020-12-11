@@ -1,5 +1,5 @@
 'use strict';
-const {TaskScheduler}=require('./semaphore-task-scheduler.js');
+const {TaskSerializer}=require('./task-serializer.js');
 function snooze(t){return new Promise((r)=>{setTimeout(r,t);});}
 function status(sts){
   return `working:${sts.getWorkingCount()},`
@@ -22,7 +22,7 @@ let myfunc=async(id,isErr,ms)=>{
 };
 
 async function example(){
-  let sts=new TaskScheduler(2);
+  let sts=new TaskSerializer(2);
   sts.onTaskEnd((ret)=>{console.log(`  onTaskEndCb ${ret}`);});
   sts.onTaskError((e)=>{console.log(`  onTaskErrorCb ${e.message}`);});
   let empty={}; empty.promise=new Promise((r)=>{empty.resolve=r;});

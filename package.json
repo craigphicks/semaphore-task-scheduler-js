@@ -1,11 +1,10 @@
 {
-  "name": "semaphore-task-scheduler",
+  "name": "task-serializer",
   "version": "1.0.0",
-  "description": "throttle number of simulataneous tasks similarly (but not identically) to the traditional countable-semaphore paradigm used in multi-threading. ",
+  "description": "Serialize tasks/promises for integrated control.  Option for limiting number of concurrent tasks.",
   "main": "index.js",
   "scripts": {
-    "test": "./script-test.sh",
-    "postinstall": "node check-node-version"
+    "test": "./script-test.sh"
   },
   "engines": {
     "node": ">=12.9"
@@ -17,8 +16,7 @@
   "author": "craigphicks",
   "license": "ISC",
   "devDependencies": {
-    "mini-preproc": "^1.0.3",
-    "semver": "^7.3.4"
+    "mini-preproc": "^1.0.3"
   },
   "dependencies": {}
 }
