@@ -5,16 +5,21 @@ TaskSerializer
 
 # Outline
 The `TaskSerializer` module can serialize tasks/promises for integrated control - Tasks/promises can be added immediately as they are produced and then be made available to a consumer when they have resolved and the consumer is ready to read them.  
+
 Optionally, the number of concurrently running tasks are limited to a user parameter. In that special case, only functions (and their args) may be added, and function will be executed when a space is available. Trying to add promises will throw an Error.
+
 All rejected tasks/promises are managed so that they don't throw unhandled rejections.
+
 The are 4 different classes exported from the module:
   - `AsyncIter`
   - `NextSymbol`
   - `WaitAll`
   - `Callbacks`
+
 Each of those classes has these input functions:
   - `addTask(func,...args)`/`addTask(promise)` to add tasks/promises.
   - `addEnd()` to indicate that no more tasks/promises will be added, thus allowing exit after the pipeline has drained.
+
 The output interface of each of those classes differ, and are suitable for different usage cases.  The following table compares some properties of those classes to help decide which is suitable for a given usage case:
 
 | property    |`AsyncIter`|`NextSymbol`|`WaitAll`|`Callbacks`| 
