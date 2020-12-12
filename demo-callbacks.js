@@ -9,11 +9,11 @@ const {exitOnBeforeExit,producer}=require('./demo-lib.js');
 
 async function consumer(ts){
   await new Promise((resolve)=>{
-    ts.onTaskEnd((result)=>{
-      console.log(`onTaskEnd ${result}`);
+    ts.onTaskResolved((result)=>{
+      console.log(`onTaskResolved ${result}`);
     });
-    ts.onTaskError((err)=>{
-      console.log(`onTaskError ${err}`);
+    ts.onTaskRejected((err)=>{
+      console.log(`onTaskRejected ${err}`);
     });
     ts.onEmpty(()=>{
       console.log(`onEmpty`);

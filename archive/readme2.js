@@ -23,8 +23,8 @@ let myfunc=async(id,isErr,ms)=>{
 
 async function example(){
   let sts=new TaskSerializer(2);
-  sts.onTaskEnd((ret)=>{console.log(`  onTaskEndCb ${ret}`);});
-  sts.onTaskError((e)=>{console.log(`  onTaskErrorCb ${e.message}`);});
+  sts.onTaskResolved((ret)=>{console.log(`  onTaskResolvedCb ${ret}`);});
+  sts.onTaskRejected((e)=>{console.log(`  onTaskRejectedCb ${e.message}`);});
   let empty={}; empty.promise=new Promise((r)=>{empty.resolve=r;});
   sts.onEmpty(()=>{console.log(`  onEmptyCb`);empty.resolve();});
   for (let i=0;i<5; i++){

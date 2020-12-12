@@ -6,8 +6,8 @@ class Callbacks{
   constructor({concurrentLimit=0}={}){
     this._ts=new TaskSerializer(concurrentLimit);
   }
-  onTaskEnd(cb){this._ts.onTaskEnd(cb);}
-  onTaskError(cb){this._ts.onTaskError(cb);}
+  onTaskResolved(cb){this._ts.onTaskResolved(cb);}
+  onTaskRejected(cb){this._ts.onTaskRejected(cb);}
   onEmpty(cb){this._ts.onEmpty(cb);}
   addTask(func,...args){this._ts.addTask(func,...args);}
   addEnd(){this._ts.addEnd();}

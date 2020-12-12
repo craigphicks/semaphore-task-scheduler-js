@@ -5,9 +5,9 @@ TaskSerializer
 
 # Outline
 The `TaskSerializer` module can serialize tasks/promises for integrated control - Tasks/promises can be added immediately as they are produced and placed in a pipline to be made available to a consumer when they have resolved and when the consumer is ready.  
-Optionally, the number of concurrently running tasks are limited to a user parameter. In that special case, only functions (and their args) may be added to the pipeline, and function will be executed when a space is available. Trying to add promises will throw an Error.
+Optionally, the number of concurrently running tasks are limited to a user parameter. In that special case, only functions (and their args) may be added, and function will be executed when a space is available. Trying to add promises will throw an Error.
 Errors are prioritized to be presented before the results on normally returning tasks.  (Except for the case of `WaitAll.waitAllSettled`.)
-All rejected promises are "defused", so that they don't throw unhandled exceptions while rejecting in the pipeline.  
+All rejected tasks/promises are managed so that they don't throw unhandled rejections.
 The are 4 different classes exported from the module:
   - `AsyncIter`
   - `NextSymbol`
@@ -20,17 +20,19 @@ The output interface of each of those classes differ, and are suitable for diffe
 
 | property    |`AsyncIter`|`NextSymbol`|`WaitAll`|`Callbacks`| 
 |--           |--         |--          |--       |--         |
-| post-term pipeline | yes | yes        | yes     | no        |
+| read buffered | yes | yes        | yes     | no        |
 | continuous vs. batch |cont | cont    | batch   | cont      |
 | control loop | yes      | yes        | no      | no        |
 | select style | no       | yes        | N/A     | N/A       |
 
 where 'property' are as follows:
-  - 'post-term pipeline':
-    - Whether the class has an internal pipeline storing the outcomes of terminated tasks/promises until they are read by the consumer.  (Note: all classes have a virtual pipeline for tasks/promises until they terminate.)
+  - 'read buffered':
+    - Whether the class has an internal buffer storing the outcomes of finished tasks/promises until they are read by the consumer.
   - 'continuous vs. batch': 
-    - Batch indicates the internal post-term pipeline holds all task until processing is finished. 
-    - Continous indicates the internal post-term pipeline is intended to be read by consumers before processing is finshed.
+    - Batch indicates either:
+      - no consumer read until all tasks/promises have resolved, or until any tak/poromise has rejected (`WaitAll.waitAll`)
+      - no consumer read until all tasks/promises have either resolved or rejected (`WaitAll.waitAllSettled`)
+    - Continous indicates the internal read buffer is intended to be read by consumers before all taks/promises have resolved/rejected.
   - 'control loop'
     - The output may be easily read in an asynchrous control loop 
   - 'select style'
@@ -88,14 +90,14 @@ async function consumer(ts){
       console.log(next);
       somethingElse=makepr();// reset
       break;
-    case ts.symbolTaskEnd():{
+    case ts.symbolTaskResolved():{
       console.log();
-      let res=ts.getTaskEnd();
-      console.log("symbolTaskEnd, result="+res);
+      let res=ts.getTaskResolvedValue();
+      console.log("symbolTaskResolved, result="+res);
       break;}
-    case ts.symbolTaskError():{
-      let e=ts.getTaskError();
-      console.log("symbolTaskError, message="+e.message);
+    case ts.symbolTaskRejected():{
+      let e=ts.getTaskRejectedValue();
+      console.log("symbolTaskRejected, message="+e.message);
       break;}
     case ts.symbolEmpty():{
       console.log("symbolEmpty");
@@ -114,7 +116,7 @@ main()
   .catch((e)=>{console.log('failure: '+e.message);process.exitCode=1;});
 ```
 
-## `WaitAll` usage example
+## `WaitAll` usage examples
 ```js
 'use strict';
 const {WaitAll}=require('task-serializer');
@@ -151,11 +153,11 @@ const {Callbacks}=require('task-serializer');
 const {exitOnBeforeExit,producer}=require('./demo-lib.js');
 async function consumer(ts){
   await new Promise((resolve)=>{
-    ts.onTaskEnd((result)=>{
-      console.log(`onTaskEnd ${result}`);
+    ts.onTaskResolved((resolvedValue)=>{
+      console.log(`onTaskResolved ${resolvedValue}`);
     });
-    ts.onTaskError((err)=>{
-      console.log(`onTaskError ${err}`);
+    ts.onTaskRejected((rejectedValue)=>{
+      console.log(`onTaskRejected ${rejectedValue}`);
     });
     ts.onEmpty(()=>{
       console.log(`onEmpty`);
@@ -251,8 +253,8 @@ async function producer(ts){
   - in the case of constructor arg `concurrentTaskLimit<=0`, either form is allowed.
   - in either case, the tasks/promises are managed by the instance of `<Classname>` until reaching miletone *read*. The tasks/promises may reject, and those rejections are handled to prevent unhandled promise rejections.    
 - `instance.addEnd()`
-  - this a guarantee from the caller that `addTask` will not be called again.  It is required so the class instance knows that when the internal pipeline is drained, it has reached milestone *finished-processing*.
-- Generally, when possible, *rejected-values* are passed to the consumer before *resolved-values*. `WaitAll.waitAllSettled()` is an exception to that rule. 
+  - this a guarantee from the caller that `addTask` will not be called again.  It is required so the instance knows that when all tasks/promises have reached the *finished* milestone, the instance has reached the *finished-processing* milestone.
+- Generally, when possible, *rejected-values* are passed to the consumer before *resolved-values*. `WaitAll.waitAllSettled()` is one exception to that rule. 
 
 ## `AsyncIter` only API
 - see [?]() for example.
@@ -260,7 +262,7 @@ async function producer(ts){
 - `instance=new AsyncIter({concurrentTaskLimit=0}={})`
   - See [API shared by all classes](#api-shared-by-all-classes).
 - explicit async `instance.next()` or implicit async `for await (iter of instance)`
-  - There are 3 possible outcomes: *resolved-value*, *rejected-value*, and *instance-empty*, where *instance-empty* indicated the instance has reached the *empty* milestone.
+  - There are 3 possible outcome categories: *resolved-value*, *rejected-value*, and *instance-empty*, where *instance-empty* indicated the instance has reached the *empty* milestone.
   - case: explicit
     - case: *resolved-value*
       - returns `{done:false,value:<resolved-value>}`
@@ -282,15 +284,15 @@ async function producer(ts){
 - `instance=new NextSymbol({concurrentTaskLimit=0}={})`
   - See [API shared by all classes](#api-shared-by-all-classes).
 - async `instance.nextSymbol()`
-  Returns a value strictly equal to one of `instance.symbolTaskEnd()`, `instance.symbolTaskError()`, or `instance.symbolEnd()`.
-  - case `instance.symbolTaskEnd()`: indicates a task/promise *resolved-value* is ready to be read.
-  - case `instance.symbolTaskError()`: indicates a task/promise *rejected-value* is ready to be read.
-  - case `instance.symbolTaskEnd()`: indicates the instance milestone *empty* has been reached.
-- `instance.getTaskEnd()`
-  - This is a sync function intended to be called immediately after `async instance.nextSymbol()` has returned a value equal to `instance.symbolTaskEnd()`
+  Returns a value strictly equal to one of `instance.symbolTaskResolved()`, `instance.symbolTaskRejected()`, or `instance.symbolEnd()`.
+  - case `instance.symbolTaskResolved()`: indicates a task/promise *resolved-value* is ready to be read.
+  - case `instance.symbolTaskRejected()`: indicates a task/promise *rejected-value* is ready to be read.
+  - case `instance.symbolTaskResolved()`: indicates the instance milestone *empty* has been reached.
+- `instance.getTaskResolvedValue()`
+  - This is a sync function intended to be called immediately after `async instance.nextSymbol()` has returned a value equal to `instance.symbolTaskResolved()`
   - It returns the next *resolved-value* of some task/promise.
-- `instance.getTaskError()`
-  - This is a sync function intended to be called immediately after `async instance.nextSymbol()` has returned a value equal to `instance.symbolTaskError()`
+- `instance.getTaskRejectedValue()`
+  - This is a sync function intended to be called immediately after `async instance.nextSymbol()` has returned a value equal to `instance.symbolTaskRejected()`
   - It returns the next *rejected-value* of some task/promise.
 
 ## `WaitAll` only API
@@ -312,9 +314,15 @@ async function producer(ts){
 - `const {Callbacks}=require('task-serializer')`
 - `instance=new Callbacks({concurrentTaskLimit=0}={})`
   - See [API shared by all classes](#api-shared-by-all-classes).
-- `instance.onTaskEnd(callback)`
-- `instance.onTaskError(callback)`
+- `instance.onTaskResolved(callback)`
+  - add the unique callback to be called every time a task/promise *resolved-result* is ready
+- `instance.onTaskRejected(callback)`
+  - add the unique callback to be called every time a task/promise *rejected-result* is ready
 - `instance.onEmpty(callback)`
+  - add the unique callback to be called when the instance reaches the *empty* milestone.
+- NOTES:
+  - Each `instance.on<*>` function should be called only once per instance.  Only one callback per function is actually registered.
+  - Each `instance.on<*>`function must be called before the instance has reached the *processing* milestone, i.e., before the first call to `addTask`.
 
 
 

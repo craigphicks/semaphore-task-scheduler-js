@@ -181,13 +181,13 @@ async function test_TaskSerializer_phase2(variant){
   console.log(`---- test_TaskSerializer_phase2 variant=${variant} ----`);
   let snooze=(t)=>{return new Promise((r)=>{setTimeout(r,t);});};
   let emptyProm=makePr();
-  let [onTaskEndCalled,onTaskErrorCalled,onEmptyCalled]=[0,0,0];
-  let onTaskEndCb=(ret)=>{onTaskEndCalled++;console.log(`onTaskEnd ${ret}`);};
-  let onTaskErrorCb=(e)=>{onTaskErrorCalled++;console.log(`onTaskEnd ${e.message}`);};
+  let [onTaskResolvedCalled,onTaskRejectedCalled,onEmptyCalled]=[0,0,0];
+  let onTaskResolvedCb=(ret)=>{onTaskResolvedCalled++;console.log(`onTaskResolved ${ret}`);};
+  let onTaskRejectedCb=(e)=>{onTaskRejectedCalled++;console.log(`onTaskResolved ${e.message}`);};
   let onEmptyCb=()=>{onEmptyCalled++;console.log(`onEmpty`);emptyProm.resolve();};
   let sts=new TaskSerializer(2);
-  sts.onTaskEnd(onTaskEndCb);
-  sts.onTaskError(onTaskErrorCb);
+  sts.onTaskResolved(onTaskResolvedCb);
+  sts.onTaskRejected(onTaskRejectedCb);
   sts.onEmpty(onEmptyCb);
   let task=async(idstr,isError,waitable)=>{
     await waitable;
@@ -210,8 +210,8 @@ async function test_TaskSerializer_phase2(variant){
   if (variant==1)
     sts.addEnd();
   await emptyProm.promise;
-  assert.strictEqual(onTaskEndCalled,2);
-  assert.strictEqual(onTaskErrorCalled,4);
+  assert.strictEqual(onTaskResolvedCalled,2);
+  assert.strictEqual(onTaskRejectedCalled,4);
   assert.strictEqual(onEmptyCalled,1);
   console.log('phase2 success');
 }

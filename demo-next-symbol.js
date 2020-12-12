@@ -21,14 +21,14 @@ async function consumer(ts){
       console.log(next);
       somethingElse=makepr();// reset
       break;
-    case ts.symbolTaskEnd():{
+    case ts.symbolTaskResolved():{
       console.log();
-      let res=ts.getTaskEnd();
-      console.log("symbolTaskEnd, result="+res);
+      let res=ts.getTaskResolvedValue();
+      console.log("symbolTaskResolved, result="+res);
       break;}
-    case ts.symbolTaskError():{
-      let e=ts.getTaskError();
-      console.log("symbolTaskError, message="+e.message);
+    case ts.symbolTaskRejected():{
+      let e=ts.getTaskRejectedValue();
+      console.log("symbolTaskRejected, message="+e.message);
       break;}
     case ts.symbolEmpty():{
       console.log("symbolEmpty");

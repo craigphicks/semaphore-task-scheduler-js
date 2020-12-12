@@ -10,11 +10,11 @@ class AsyncIter {
     this._nextpr={};
     this._reset_nextpr();
     this._emptyFlag=false;
-    this._sts.onTaskEnd(((retval)=>{
+    this._sts.onTaskResolved(((retval)=>{
       this._q.push(retval);
       this._nextpr.resolve();
     }).bind(this));
-    this._sts.onTaskError(((e)=>{
+    this._sts.onTaskRejected(((e)=>{
       this._qe.push(e);
       this._nextpr.resolve();
     }).bind(this));

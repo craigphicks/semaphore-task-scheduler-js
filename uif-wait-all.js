@@ -5,10 +5,10 @@ class WaitAll{
     this._results=[];
     this._error=TaskSerializer._makepr();
     this._empty=TaskSerializer._makepr();
-    this._ts.onTaskEnd((result)=>{
+    this._ts.onTaskResolved((result)=>{
       this._results.push(Promise.resolve(result));
     });
-    this._ts.onTaskError((err)=>{
+    this._ts.onTaskRejected((err)=>{
       // defuse the error so it doesn't become unhandled rejection
       // eslint-disable-next-line no-unused-vars
       let p=Promise.reject(err);

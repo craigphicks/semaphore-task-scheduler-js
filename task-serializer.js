@@ -34,8 +34,8 @@ class TaskSerializer{
     this._numAdded=0;
     this._numFinished=0;
     this._onEmptyCallback=null;
-    this._onTaskEndCallback=null;
-    this._onTaskErrorCallback=null;
+    this._onTaskResolvedCallback=null;
+    this._onTaskRejectedCallback=null;
     this._endFlag=false;
   }
   static _makepr(){
@@ -54,12 +54,12 @@ class TaskSerializer{
               'addTask, illogical to add promise when concurrent limit in use');
           result=func; // OK
         }
-        if (this._onTaskEndCallback)
-          this._onTaskEndCallback(result);
+        if (this._onTaskResolvedCallback)
+          this._onTaskResolvedCallback(result);
         return result;
       } catch(e) {
-        if (this._onTaskErrorCallback)
-          this._onTaskErrorCallback(e);
+        if (this._onTaskRejectedCallback)
+          this._onTaskRejectedCallback(e);
         throw e;
       } finally {
         this._sem.signal();
@@ -91,8 +91,8 @@ class TaskSerializer{
   getWaitingCount(){return this._sem.getWaitingCount();}
   getFinishedCount(){return this._numFinished;}
   onEmpty(callback){this._onEmptyCallback=callback;}
-  onTaskEnd(callback){this._onTaskEndCallback=callback;}
-  onTaskError(callback){this._onTaskErrorCallback=callback;}
+  onTaskResolved(callback){this._onTaskResolvedCallback=callback;}
+  onTaskRejected(callback){this._onTaskRejectedCallback=callback;}
 }
 module.exports.TaskSerializer=TaskSerializer;
 //module.exports.test_TaskSerializer=test_TaskSerializer;
