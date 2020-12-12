@@ -212,41 +212,68 @@ async function producer(ts){
 }
 ```
 # APIs
+
+## Terminology
+
+- Each task/promise after being added will go through all of the following milestones in order:
+  - *added*
+    - The task has been added with `addTask`.
+  - *started*
+    - If the construtor parameter `concurrentTaskLimit`>0, then a task may be forced to wait before start.
+    - If the construtor parameter `concurrentTaskLimit`<=0, that all task/promises are (considered) *started* when *added*.  
+  - *finished*
+    - Task/promise has reached an outcome, either one of the following two categories: 
+      - *resolved-value*
+        - resulting from `resolve(<resolved-value>)` or `return <resolved-value>`
+      - *rejected-value* 
+        - resulting from ``reject(<rejected-value>)` or `throw <rejected value>`
+        - The actual values are determined by the task/promise, not by the `TaskSerializer` module.  A rejected-value typically satisfies `(<rejected-value> instanceof Error)`, but that is not mandatory.  
+  - *read*
+    - Task/promise outcome has been read by the consumer.  This state might not be reached of reading is abandoned, e.g. due to a rejected-value.
+- The class instance passed through the following milestones, in order:
+  - *started-processing*
+    - First task/promise has been *added*.
+  - *ended*
+    - `addEnd` has been called to guarantee no more tasks/promises will be added. 
+  - *finished-processing*
+    - `addEnd` has been called and all *added* tasks have reached *finished*.
+  - *empty*
+    - `addEnd` has been called and all *added* tasks have reached *read*.
+
 ## API shared by all classes
-- `new <Classname>({concurrentTaskLimit=0}={})`
+- `instance=new <Classname>({concurrentTaskLimit=0}={})`
   - where `<Classname>` is one of `AsyncIter`,`Callbacks`,`NextSymbol`,or `WaitAll`.
   - `concurrentTaskLimit` is the integer number of task allowed to run concurrently, unless it is `<=0`, in which case their is no limit.  
-- `addTask(func,...args)` where `(func instanceof Function)`, or `addTask(promise)` where `(promise instanceof Promise)`
+- `instance.addTask(func,...args)` where `(func instanceof Function)`, or `addTask(promise)` where `(promise instanceof Promise)`
   - in the case of constructor arg `concurrentTaskLimit>0`, 
     - `addTask` will allow only the first form, and passing a promise will throw. 
     - `func(...args)` will be called in the order passed, when the concurrent task limit constraint allows.  
   - in the case of constructor arg `concurrentTaskLimit<=0`, either form is allowed.
-  - in either case, the tasks/promises are managed by the instance of `<Classname>` in a (possibly virtual) pipeline, until read from the instance consumer interface. The tasks/promises may reject while in the pipeline, and those rejections are handled to prevent unhandled promise rejections.    
-- `addEnd()`
-  - this a guarantee from the caller that `addTask` will not be called again.  It is required so the class instance knows that when the internal pipeline is drained, it has reached end-of-processing.
-- Note on task/promise resolved-value and rejected-value relative precedence.
-  - Each task/promise will terminate with either a resolved-value or a rejected-value (unless it deadlocks or otherwise fails to terminate).  Almost always(\*), a rejected-value will always take precendence over a resolved-value when both ready for the consumer.  Otherwise they are presented to the consumer in the order of teask/promise termination.  (\*)*The exception to the rule is when the consumer calls `WaitAll.waitAllSettled()`*. 
+  - in either case, the tasks/promises are managed by the instance of `<Classname>` until reaching miletone *read*. The tasks/promises may reject, and those rejections are handled to prevent unhandled promise rejections.    
+- `instance.addEnd()`
+  - this a guarantee from the caller that `addTask` will not be called again.  It is required so the class instance knows that when the internal pipeline is drained, it has reached milestone *finished-processing*.
+- Generally, when possible, *rejected-values* are passed to the consumer before *resolved-values*. `WaitAll.waitAllSettled()` is an exception to that rule. 
 
 ## `AsyncIter` only API
 - see [?]() for example.
 - `const {AsyncIter}=require('task-serializer')`
 - `instance=new AsyncIter({concurrentTaskLimit=0}={})`
   - See [API shared by all classes](#api-shared-by-all-classes).
-- explicit `async instance.next()` or implicit async `for await (iter of instance)`
-  - There are 3 possible outcomes: resolved-value, rejected-value, and end-of-processing, where resolved-value and rejected-value are values determined inside the callers provided tasks/promises.
+- explicit async `instance.next()` or implicit async `for await (iter of instance)`
+  - There are 3 possible outcomes: *resolved-value*, *rejected-value*, and *instance-empty*, where *instance-empty* indicated the instance has reached the *empty* milestone.
   - case: explicit
-    - case: resolved-value
+    - case: *resolved-value*
       - returns `{done:false,value:<resolved-value>}`
-    - case: rejected-value
+    - case: *rejected-value*
       - throws `<rejected-value>`
-    - case: end-of-processing
+    - case: *instance-empty*
       - returns `{done:true}`
   - case: implicit
-    - case: resolved-value
+    - case: *resolved-value*
       - `iter` will be the `<resolved-value>` 
-    - case: rejected-value
+    - case: *rejected-value*
       - throws `<rejected-value>`
-    - case: end-of-processing
+    - case: *instance-empty*
       - breaks from loop.
   
 ## `NextSymbol` only API
@@ -254,26 +281,31 @@ async function producer(ts){
 - `const {NextSymbol}=require('task-serializer')`
 - `instance=new NextSymbol({concurrentTaskLimit=0}={})`
   - See [API shared by all classes](#api-shared-by-all-classes).
-- `async instance.nextSymbol()`
+- async `instance.nextSymbol()`
   Returns a value strictly equal to one of `instance.symbolTaskEnd()`, `instance.symbolTaskError()`, or `instance.symbolEnd()`.
-  - case `instance.symbolTaskEnd()`: indicates a task/promise resolved-value is ready to be read.
-  - case `instance.symbolTaskError()`: indicates a task/promise rejected-value is ready to be read.
-  - case `instance.symbolTaskEnd()`: indicates the end-of-processing has been reached.
+  - case `instance.symbolTaskEnd()`: indicates a task/promise *resolved-value* is ready to be read.
+  - case `instance.symbolTaskError()`: indicates a task/promise *rejected-value* is ready to be read.
+  - case `instance.symbolTaskEnd()`: indicates the instance milestone *empty* has been reached.
 - `instance.getTaskEnd()`
   - This is a sync function intended to be called immediately after `async instance.nextSymbol()` has returned a value equal to `instance.symbolTaskEnd()`
-  - It returns the next resolved-value of a task/promise in the pipeline.
+  - It returns the next *resolved-value* of some task/promise.
 - `instance.getTaskError()`
   - This is a sync function intended to be called immediately after `async instance.nextSymbol()` has returned a value equal to `instance.symbolTaskError()`
-  - It returns the next rejected-value of a task/promise in the pipeline.
+  - It returns the next *rejected-value* of some task/promise.
 
 ## `WaitAll` only API
 - see [?]() for example.
 - `const {WaitAll}=require('task-serializer')`
 - `instance=new WaitAll({concurrentTaskLimit=0}={})`
   - See [API shared by all classes](#api-shared-by-all-classes).
-- `async instance.waitAll()`
-- `async instance.waitAllSettled()`
-
+- async `instance.waitAll()`
+  - There is no timing constraint on calling `waitAll`, i.e. no requirement to call before after any instance milestone, although obviously milestone *empty* is not reached until `waitAll` is called. 
+  - If any tasks/promises have terminated with an error before the call to `addTask`, then that first one will be returned immediately when `waitAll` is called.
+  - If any tasks/promises have terminated with an error after `addTask` is called, `waitAll` will immediately return with that error.
+  - Otherise `waitAll` will not return before all the tasks/promises added with `addTask` have terminated, and the array of resolved-values will be the order they were added, not the order they were resolved. 
+- async `instance.waitAllSettled()`
+  - There is no timing constraint on calling `waitAllSettled()`.  Any time from before the first `addTask` to after all tasks/promises have terminated (i.e., end-of-processing) is allowed. Measures have been taken to prevent unhandled rejections.
+  - `waitAllSettled` will return no sooner than end-of-processing.  It will return the same value as [`Promise.waitAllSettled()`](https://javascript.info/promise-api#promise-allsettled) would return on an array of all tasks/promises added via `addTask` in the order the were added.
 
 ## `Callbacks` only API
 - see [?]() for example.
