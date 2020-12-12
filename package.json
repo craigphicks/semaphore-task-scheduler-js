@@ -10,8 +10,10 @@
     "node": ">=12.9"
   },
   "keywords": [
-    "task-scheduling",
-    "semaphore"
+    "top down",
+    "serialize events",
+    "serialize tasks",
+    "concurrent task limit"
   ],
   "author": "craigphicks",
   "license": "ISC",
