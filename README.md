@@ -8,47 +8,21 @@ The `TaskSerializer` module can serialize tasks/promises for integrated control 
 
 Optionally, the number of concurrently running tasks are limited to a user parameter. In that special case, only functions (and their args) may be added, and function will be executed when a space is available. Trying to add promises will throw an Error.
 
-All rejected tasks/promises are managed so that they don't throw unhandled rejections.
-
 The are 4 different classes exported from the module:
   - `AsyncIter`
   - `NextSymbol`
   - `WaitAll`
   - `Callbacks`
 
-Each of those classes has these input functions:
-  - `addTask(func,...args)`/`addTask(promise)` to add tasks/promises.
-  - `addEnd()` to indicate that no more tasks/promises will be added, thus allowing exit after the pipeline has drained.
-
-The output interface of each of those classes differ, and are suitable for different usage cases.  The following table compares some properties of those classes to help decide which is suitable for a given usage case:
-
-| property    |`AsyncIter`|`NextSymbol`|`WaitAll`|`Callbacks`| 
-|--           |--         |--          |--       |--         |
-| read buffered | yes | yes        | yes     | no        |
-| continuous vs. batch |cont | cont    | batch   | cont      |
-| control loop | yes      | yes        | no      | no        |
-| select style | no       | yes        | N/A     | N/A       |
-
-where 'property' are as follows:
-  - 'read buffered':
-    - Whether the class has an internal buffer storing the outcomes of finished tasks/promises until they are read by the consumer.
-  - 'continuous vs. batch': 
-    - Batch indicates either:
-      - no consumer read until all tasks/promises have resolved, or until any tak/poromise has rejected (`WaitAll.waitAll`)
-      - no consumer read until all tasks/promises have either resolved or rejected (`WaitAll.waitAllSettled`)
-    - Continous indicates the internal read buffer is intended to be read by consumers before all taks/promises have resolved/rejected.
-  - 'control loop'
-    - The output may be easily read in an asynchrous control loop 
-  - 'select style'
-    - The control loop condition informs an output is 'ready' without actually reading it.  This style is useful for a top level control loop integrating 'ready' conditions from many unrelated sources. (See [`NextSymbol` usage example](#nextsymbol-usage-example).)
-
-Read-buffered classes prioritize rejected-values over resolved-values, and pass the rejected-values first whenever both are availabe.  The exception to this rule is `WaitAll.waitAllSettled()`, which transforms rejected-values into resolved-values.
+See [Essential Information](#essential-information) for a discussion of their behavior and differences.
 
 # Usage examples
 
 ## Note on shared demo functions
 
-To make the examples more readable, some shared demo functions for a file `demo.lib` are used, and those [shared functions are listed at the end](#demo-libjs) of the examples.  One of those functions is the async function `producer(ts)`. It inputs the tasks by calling `addTask(...)` staggered over time, followed by `addEnd()`. Some of those tasks throw `Errors`, other resolve normally.   
+To make the examples more readable some shared function are used. [They are listed at the end](#demo-libjs) of the examples.  
+
+One of those shared functions is the async function `producer()`. It inputs the tasks by calling `install.addTask(...)` staggered over time, followed by `install.addEnd()`. Some of those tasks throw `Errors`, other resolve normally.   
 
 All the below example code is availalable in the `example-usages` subdirectory of the installed node module, e.g., `node_modules/task-serializer/usage-examples`.
 
@@ -234,8 +208,43 @@ async function producer(ts){
   console.log('producer finished');
 }
 ```
+# Esential Information
 
-# APIs
+## Classes share common input functions
+Each of the classes includes these input functions:
+  - `addTask(func,...args)`/`addTask(promise)` to add tasks/promises.
+  - `addEnd()` to indicate that no more tasks/promises will be added, thus allowing exit after the pipeline has drained.
+
+
+## Class have differing output functions and behavior
+The output interface of each of those classes differ, and are suitable for different usage cases.  The following table compares some properties of those classes to help decide which is suitable for a given usage case:
+
+| property    |`AsyncIter`|`NextSymbol`|`WaitAll`|`Callbacks`| 
+|--           |--         |--          |--       |--         |
+| read buffered | yes | yes        | yes     | no        |
+| continuous vs. batch |cont | cont    | batch   | cont      |
+| control loop | yes      | yes        | no      | no        |
+| select style | no       | yes        | N/A     | N/A       |
+
+where 'property' are as follows:
+  - 'read buffered':
+    - Whether the class has an internal buffer storing the outcomes of finished tasks/promises until they are read by the consumer.
+  - 'continuous vs. batch': 
+    - Batch indicates either:
+      - no consumer read until all tasks/promises have resolved, or until any tak/poromise has rejected (`WaitAll.waitAll`)
+      - no consumer read until all tasks/promises have either resolved or rejected (`WaitAll.waitAllSettled`)
+    - Continous indicates the internal read buffer is intended to be read by consumers before all taks/promises have resolved/rejected.
+  - 'control loop'
+    - The output may be easily read in an asynchrous control loop 
+  - 'select style'
+    - The control loop condition informs an output is 'ready' without actually reading it.  This style is useful for a top level control loop integrating 'ready' conditions from many unrelated sources. (See [`NextSymbol` usage example](#nextsymbol-usage-example).)
+
+## Resolve/Reject handling
+
+All rejected tasks/promises are managed so that they don't throw unhandled rejections.
+
+Read-buffered classes prioritize rejected-values over resolved-values, and pass the rejected-values first whenever both are availabe.  The exception to this rule is `WaitAll.waitAllSettled()`, which transforms rejected-values into resolved-values.
+
 ## Terminology
 
 - Each task/promise after being added will go through all of the following milestones in order:
@@ -253,6 +262,7 @@ async function producer(ts){
         - The actual values are determined by the task/promise, not by the `TaskSerializer` module.  A rejected-value typically satisfies `(<rejected-value> instanceof Error)`, but that is not mandatory.  
   - *read*
     - Task/promise outcome has been read by the consumer.  This state might not be reached of reading is abandoned, e.g. due to a rejected-value.
+
 - The class instance passed through the following milestones, in order:
   - *started-processing*
     - First task/promise has been *added*.
@@ -262,6 +272,8 @@ async function producer(ts){
     - `addEnd` has been called and all *added* tasks have reached *finished*.
   - *empty*
     - `addEnd` has been called and all *added* tasks have reached *read*.
+
+# APIs
 
 ## API shared by all classes
 - `instance=new <Classname>({concurrentTaskLimit=0}={})`
