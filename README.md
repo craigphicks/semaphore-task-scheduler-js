@@ -4,9 +4,8 @@ TaskSerializer
 ---
 
 # Outline
-The `TaskSerializer` module can serialize tasks/promises for integrated control - Tasks/promises can be added immediately as they are produced and placed in a pipline to be made available to a consumer when they have resolved and when the consumer is ready.  
+The `TaskSerializer` module can serialize tasks/promises for integrated control - Tasks/promises can be added immediately as they are produced and then be made available to a consumer when they have resolved and the consumer is ready to read them.  
 Optionally, the number of concurrently running tasks are limited to a user parameter. In that special case, only functions (and their args) may be added, and function will be executed when a space is available. Trying to add promises will throw an Error.
-Errors are prioritized to be presented before the results on normally returning tasks.  (Except for the case of `WaitAll.waitAllSettled`.)
 All rejected tasks/promises are managed so that they don't throw unhandled rejections.
 The are 4 different classes exported from the module:
   - `AsyncIter`
@@ -37,6 +36,8 @@ where 'property' are as follows:
     - The output may be easily read in an asynchrous control loop 
   - 'select style'
     - The control loop condition informs an output is 'ready' without actually reading it.  This style is useful for a top level control loop integrating 'ready' conditions from many unrelated sources. (See [`NextSymbol` usage example](#nextsymbol-usage-example).)
+
+Read-buffered classes prioritize rejected-values over resolved-values, and pass the rejected-values first whenever both are availabe.  The exception to this rule is `WaitAll.waitAllSettled()`, which transforms rejected-values into resolved-values.
 
 # Usage examples
 
