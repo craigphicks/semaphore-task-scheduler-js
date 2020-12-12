@@ -42,10 +42,12 @@ where 'property' are as follows:
 
 ## Note on shared demo functions
 
-To make the examples more readable, some shared demo functions are used, and those shared functions are listed at the end of the examples (so as not to distract.)  One of those functions is the async function `producer(ts)`. It inputs the tasks by calling `addTask(...)` staggered over time. Some of those tasks throw `Errors`, other resolve normally. Finally `producer` ends the input calling `addEnd()`.   
-All the example code is availalable in the `example-usages` subdirectory of the installed node module, e.g., `node_modules/task-serializer/demo-usages`.
+To make the examples more readable, some shared demo functions for a file `demo.lib` are used, and those [shared functions are listed at the end](#demo-libjs) of the examples.  One of those functions is the async function `producer(ts)`. It inputs the tasks by calling `addTask(...)` staggered over time, followed by `addEnd()`. Some of those tasks throw `Errors`, other resolve normally.   
+
+All the below example code is availalable in the `example-usages` subdirectory of the installed node module, e.g., `node_modules/task-serializer/usage-examples`.
 
 ## `AsyncIter` usage example
+[API](#asynciter-only-api)
 ```js
 'use strict';
 const {AsyncIter}=require('task-serializer');
@@ -72,10 +74,12 @@ main()
 ```
 
 ## `NextSymbol` usage example
+[API](#nextsymbol-only-api)
 ```js
 'use strict';
 const {NextSymbol}=require('task-serializer');
 const {makepr,exitOnBeforeExit,producer}=require('./demo-lib.js');
+
 var somethingElse=makepr();
 var iv=setInterval(()=>{somethingElse.resolve("somethingElse");},300);  
 async function consumer(ts){
@@ -113,15 +117,17 @@ async function main(){
 }
 main()
   .then(()=>{console.log('success');process.exitCode=0;})
-  .catch((e)=>{console.log('failure: '+e.message);process.exitCode=1;});
+  .catch((e)=>{console.log('failure: '+e.message);process.exitCode=1;})
+;
 ```
 
 ## `WaitAll` usage examples
+[API](#waitall-only-api)
 ```js
 'use strict';
 const {WaitAll}=require('task-serializer');
 const {exitOnBeforeExit,producer}=require('./demo-lib.js');
-async function consumer(ts){
+async function consumer_waitAll(ts){
   try{
     let r=await ts.waitAll();
     console.log(`ts.waitAll() returned`);
@@ -129,6 +135,8 @@ async function consumer(ts){
   }catch(e){
     console.log(`ts.waitAll() caught ${e.message}`);
   }
+}
+async function consumer_waitAllSettled(ts){
   let r=await ts.waitAllSettled();
   console.log(`ts.waitAllSettled() returned`);
   console.log(JSON.stringify(r,0,2));
@@ -137,7 +145,12 @@ async function consumer(ts){
 async function main(){
   let waitAll=new WaitAll({concurrentLimit:2});
   await Promise.all([
-    consumer(waitAll),
+    consumer_waitAll(waitAll),
+    producer(waitAll),
+  ]);
+  waitAll=new WaitAll({concurrentLimit:2});
+  await Promise.all([
+    consumer_waitAllSettled(waitAll),
     producer(waitAll),
   ]);
 }
@@ -147,6 +160,7 @@ main()
 ```
 
 ## `Callbacks` usage example
+[API](#callbacks-only-api)
 ```js
 'use strict';
 const {Callbacks}=require('task-serializer');
@@ -176,6 +190,7 @@ async function main(){
 main()
   .then(()=>{console.log('success');process.exitCode=0;})
   .catch((e)=>{console.log('failure '+e.message);process.exitCode=1;});
+exitOnBeforeExit(2);
 ```
 
 ## `demo-lib.js`
@@ -213,8 +228,8 @@ async function producer(ts){
   console.log('producer finished');
 }
 ```
-# APIs
 
+# APIs
 ## Terminology
 
 - Each task/promise after being added will go through all of the following milestones in order:
@@ -257,7 +272,7 @@ async function producer(ts){
 - Generally, when possible, *rejected-values* are passed to the consumer before *resolved-values*. `WaitAll.waitAllSettled()` is one exception to that rule. 
 
 ## `AsyncIter` only API
-- see [?]() for example.
+- see [`AsyncIter` usage example](#asynciter-usage-example) for example.
 - `const {AsyncIter}=require('task-serializer')`
 - `instance=new AsyncIter({concurrentTaskLimit=0}={})`
   - See [API shared by all classes](#api-shared-by-all-classes).
@@ -279,7 +294,7 @@ async function producer(ts){
       - breaks from loop.
   
 ## `NextSymbol` only API
-- see [?]() for example.
+- see [`NextSymbol` usage example](#nextsymbol-usage-example) for example.
 - `const {NextSymbol}=require('task-serializer')`
 - `instance=new NextSymbol({concurrentTaskLimit=0}={})`
   - See [API shared by all classes](#api-shared-by-all-classes).
@@ -296,7 +311,7 @@ async function producer(ts){
   - It returns the next *rejected-value* of some task/promise.
 
 ## `WaitAll` only API
-- see [?]() for example.
+- see [`WaitAll` usage examples](#waitall-usage-examples) for example.
 - `const {WaitAll}=require('task-serializer')`
 - `instance=new WaitAll({concurrentTaskLimit=0}={})`
   - See [API shared by all classes](#api-shared-by-all-classes).
@@ -310,7 +325,7 @@ async function producer(ts){
   - `waitAllSettled` will return no sooner than end-of-processing.  It will return the same value as [`Promise.waitAllSettled()`](https://javascript.info/promise-api#promise-allsettled) would return on an array of all tasks/promises added via `addTask` in the order the were added.
 
 ## `Callbacks` only API
-- see [?]() for example.
+- see [`Callbacks` usage example](#callbacks-usage-example) for example.
 - `const {Callbacks}=require('task-serializer')`
 - `instance=new Callbacks({concurrentTaskLimit=0}={})`
   - See [API shared by all classes](#api-shared-by-all-classes).
@@ -324,6 +339,11 @@ async function producer(ts){
   - Each `instance.on<*>` function should be called only once per instance.  Only one callback per function is actually registered.
   - Each `instance.on<*>`function must be called before the instance has reached the *processing* milestone, i.e., before the first call to `addTask`.
 
-
+# TODO:
+- Add in informational functions
+  - `instance.getCountAddedNotStarted()`
+  - `instance.getCountStarterNotFinished()`
+  - `instance.getCountFinishedNotRead()`
+  - `instance.getCountRead()`
 
 

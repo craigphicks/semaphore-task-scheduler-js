@@ -4,11 +4,11 @@ const {exitOnBeforeExit,producer}=require('./demo-lib.js');
 
 async function consumer(ts){
   await new Promise((resolve)=>{
-    ts.onTaskResolved((result)=>{
-      console.log(`onTaskResolved ${result}`);
+    ts.onTaskResolved((resolvedValue)=>{
+      console.log(`onTaskResolved ${resolvedValue}`);
     });
-    ts.onTaskRejected((err)=>{
-      console.log(`onTaskRejected ${err}`);
+    ts.onTaskRejected((rejectedValue)=>{
+      console.log(`onTaskRejected ${rejectedValue}`);
     });
     ts.onEmpty(()=>{
       console.log(`onEmpty`);

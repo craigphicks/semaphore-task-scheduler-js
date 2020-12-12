@@ -27,5 +27,4 @@ async function main(){
 main()
   .then(()=>{console.log('success');process.exitCode=0;})
   .catch((e)=>{console.log('failure '+e.message);process.exitCode=1;});
-
 exitOnBeforeExit(2);
