@@ -7,6 +7,7 @@ async function oneSet(nodeJSonly){
   fs.mkdirSync(outdir,{recursive:true});
   let proms=[];
   for (let fn of [
+    "demo-all.sh",
     "demo-async-iter.js",
     "demo-callbacks.js",
     "demo-next-symbol.js",
