@@ -3,8 +3,10 @@
 const {TaskSerializer}=require('./task-serializer.js');
 
 class AsyncIter {
-  constructor(initCount){
-    this._sts=new TaskSerializer(initCount);
+  constructor({concurrentTaskLimit=0}={}){
+    if (Object.keys(arguments).includes('0'))
+      concurrentTaskLimit=arguments['0'];
+    this._sts=new TaskSerializer(concurrentTaskLimit);
     this._q=[];
     this._qe=[];
     this._nextpr={};

@@ -3,8 +3,10 @@
 
 const {TaskSerializer}=require('./task-serializer.js');
 class Callbacks{
-  constructor({concurrentLimit=0}={}){
-    this._ts=new TaskSerializer(concurrentLimit);
+  constructor({concurrentTaskLimit=0}={}){
+    if (Object.keys(arguments).includes('0'))
+      concurrentTaskLimit=arguments['0'];
+    this._ts=new TaskSerializer(concurrentTaskLimit);
   }
   onTaskResolved(cb){this._ts.onTaskResolved(cb);}
   onTaskRejected(cb){this._ts.onTaskRejected(cb);}

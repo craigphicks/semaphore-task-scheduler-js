@@ -347,7 +347,9 @@ The following are informational functions available only in the read-buffered cl
 ## `AsyncIter` only API
 - see [`AsyncIter` usage example](#asynciter-usage-example) for example.
 - `const {AsyncIter}=require('task-serializer')`
-- `instance=new AsyncIter({concurrentTaskLimit=0}={})`
+- `AsyncIter.constructor({concurrentTaskLimit=0}={})`
+- `AsyncIter.constructor(concurrentTaskLimit=0)`
+  - Either form of constructor (named/unnamed param) are allowed.. 
   - See [API shared by all classes](#api-shared-by-all-classes).
 - explicit async `instance.next()` or implicit async `for await (iter of instance)`
   - There are 3 possible outcome categories: *resolved-value*, *rejected-value*, and *all-read*, where *all-read* indicates that the instance has reached the *all-read* milestone.
@@ -369,7 +371,9 @@ The following are informational functions available only in the read-buffered cl
 ## `NextSymbol` only API
 - see [`NextSymbol` usage example](#nextsymbol-usage-example) for example.
 - `const {NextSymbol}=require('task-serializer')`
-- `instance=new NextSymbol({concurrentTaskLimit=0}={})`
+- `NextSymbol.constructor({concurrentTaskLimit=0}={})`
+- `NextSymbol.constructor(concurrentTaskLimit=0)`
+  - Either form of constructor (named/unnamed param) are allowed.. 
   - See [API shared by all classes](#api-shared-by-all-classes).
 - async `instance.nextSymbol()`
   Returns a value strictly equal to one of `instance.symbolTaskResolved()`, `instance.symbolTaskRejected()`, or `instance.symbolAllRead()`.
@@ -386,7 +390,9 @@ The following are informational functions available only in the read-buffered cl
 ## `WaitAll` only API
 - see [`WaitAll` usage examples](#waitall-usage-examples) for example.
 - `const {WaitAll}=require('task-serializer')`
-- `instance=new WaitAll({concurrentTaskLimit=0}={})`
+- `WaitAll.constructor({concurrentTaskLimit=0}={})`
+- `WaitAll.constructor(concurrentTaskLimit=0)`
+  - Either form of constructor (named/unnamed param) are allowed.. 
   - See [API shared by all classes](#api-shared-by-all-classes).
 - async `instance.waitAll()`
   - There is no timing constraint on calling `waitAll`, i.e. no requirement to call before after any instance milestone, although obviously milestone *empty* is not reached until `waitAll` is called. 
@@ -400,7 +406,9 @@ The following are informational functions available only in the read-buffered cl
 ## `Callbacks` only API
 - see [`Callbacks` usage example](#callbacks-usage-example) for example.
 - `const {Callbacks}=require('task-serializer')`
-- `instance=new Callbacks({concurrentTaskLimit=0}={})`
+- `Callbacks.constructor({concurrentTaskLimit=0}={})`
+- `Callbacks.constructor(concurrentTaskLimit=0)`
+  - Either form of constructor (named/unnamed param) are allowed.. 
   - See [API shared by all classes](#api-shared-by-all-classes).
 - `instance.onTaskResolved(callback)`
   - add the unique callback to be called every time a task/promise *resolved-result* is ready

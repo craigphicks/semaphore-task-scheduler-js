@@ -1,7 +1,9 @@
 const {TaskSerializer}=require('./task-serializer.js');
 class WaitAll{
-  constructor({concurrentLimit=0}={}){
-    this._ts=new TaskSerializer(concurrentLimit);
+  constructor({concurrentTaskLimit=0}={}){
+    if (Object.keys(arguments).includes('0'))
+      concurrentTaskLimit=arguments['0'];
+    this._ts=new TaskSerializer(concurrentTaskLimit);
     this._results=[];
     this._error=TaskSerializer._makepr();
     this._empty=TaskSerializer._makepr();

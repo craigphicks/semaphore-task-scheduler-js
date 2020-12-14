@@ -1,8 +1,8 @@
 const {TaskSerializer}=require('./task-serializer.js');
 class NextSymbol{
-  constructor({
-    concurrentTaskLimit=0,
-  }={}){
+  constructor({concurrentTaskLimit=0,}={}){
+    if (Object.keys(arguments).includes('0'))
+      concurrentTaskLimit=arguments['0'];
     this._ts=new TaskSerializer(concurrentTaskLimit);
     this._result=TaskSerializer._makepr();
     this._error=TaskSerializer._makepr();

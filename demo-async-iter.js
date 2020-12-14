@@ -23,7 +23,7 @@ async function consumer(ai){
   }while(true);
 }
 async function main(){
-  let ai=new AsyncIter(2);
+  let ai=new AsyncIter({concurrentTaskLimit:2});
   await Promise.all([producer(ai),consumer(ai)]);
 }
 //--IF{{NODEJS}}
