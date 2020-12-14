@@ -1,6 +1,6 @@
 {
   "name": "task-serializer",
-  "version": "1.2.0",
+  "version": "2.0.0",
   "description": "Serialize tasks/promises for integrated control.  Option for limiting number of concurrent tasks.",
   "main": "index.js",
   "scripts": {
