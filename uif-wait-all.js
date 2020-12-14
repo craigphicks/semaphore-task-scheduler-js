@@ -34,5 +34,13 @@ class WaitAll{
     await this._empty.promise;
     return await Promise.allSettled(this._results);
   }
+  // informationals
+  getCountWaiting(){return this._ts.getWaitingCount();}
+  getCountWorking(){return this._ts.getWorkingCount();}
+  // the following are monotonically increasing totals, 
+  getCountResolvedTotal(){return this._ts.getResolvedCount();}
+  getCountRejectedTotal(){return this._ts.getRejectedCount();}
+  getCountFinishedTotal(){return this._ts.getFinishedCount();}
+
 }
 module.exports.WaitAll=WaitAll;

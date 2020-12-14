@@ -57,6 +57,16 @@ class AsyncIter {
       }
     };
   }
+  // informationals
+  getCountWaiting(){return this._sts.getWaitingCount();}
+  getCountWorking(){return this._sts.getWorkingCount();}
+  getCountResolvedNotRead(){return this._q.length;}
+  getCountRejectedNotRead(){return this._qe.length;}
+  getCountFinishedNotRead(){return this._q.length+this._qe.length;}
+  // the following are monotonically increasing totals, 
+  getCountResolvedTotal(){return this._sts.getResolvedCount();}
+  getCountRejectedTotal(){return this._sts.getRejectedCount();}
+  getCountFinishedTotal(){return this._sts.getFinishedCount();}
 }
 
 module.exports.AsyncIter=AsyncIter;

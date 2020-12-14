@@ -16,6 +16,8 @@ The are 4 different classes exported from the module:
 
 See [Essential Information](#essential-information) for a discussion of their behavior and differences.
 
+The module is not dependent upon NodeJS, so can be used in browser code.
+
 # Usage examples
 
 ## Note on shared demo functions
@@ -31,7 +33,7 @@ All the below example code is availalable in the `example-usages` subdirectory o
 ```js
 'use strict';
 const {AsyncIter}=require('task-serializer');
-const {exitOnBeforeExit,producer}=require('./demo-lib.js');
+const {producer}=require('./demo-lib.js');
 async function consumer(ai){
   do{
     try{
@@ -49,8 +51,8 @@ async function main(){
   await Promise.all([producer(ai),consumer(ai)]);
 }
 main()
-  .then(()=>{console.log('success');process.exitCode=0;})
-  .catch((e)=>{console.log('failure '+e.message);process.exitCode=1;});
+  .then(()=>{console.log('success');})
+  .catch((e)=>{console.log('failure '+e.message);});
 ```
 
 ## `NextSymbol` usage example
@@ -58,8 +60,7 @@ main()
 ```js
 'use strict';
 const {NextSymbol}=require('task-serializer');
-const {makepr,exitOnBeforeExit,producer}=require('./demo-lib.js');
-
+const {makepr,producer}=require('./demo-lib.js');
 var somethingElse=makepr();
 var iv=setInterval(()=>{somethingElse.resolve("somethingElse");},300);  
 async function consumer(ts){
@@ -83,8 +84,8 @@ async function consumer(ts){
       let e=ts.getTaskRejectedValue();
       console.log("symbolTaskRejected, message="+e.message);
       break;}
-    case ts.symbolEmpty():{
-      console.log("symbolEmpty");
+    case ts.symbolAllRead():{
+      console.log("symbolAllRead");
       emptied=true;
       clearInterval(iv);
       break;}
@@ -96,9 +97,8 @@ async function main(){
   await Promise.all([consumer(ts),producer(ts)]);
 }
 main()
-  .then(()=>{console.log('success');process.exitCode=0;})
-  .catch((e)=>{console.log('failure: '+e.message);process.exitCode=1;})
-;
+  .then(()=>{console.log('success');})
+  .catch((e)=>{console.log('failure: '+e.message);});
 ```
 
 ## `WaitAll` usage examples
@@ -106,7 +106,7 @@ main()
 ```js
 'use strict';
 const {WaitAll}=require('task-serializer');
-const {exitOnBeforeExit,producer}=require('./demo-lib.js');
+const {producer}=require('./demo-lib.js');
 async function consumer_waitAll(ts){
   try{
     let r=await ts.waitAll();
@@ -135,8 +135,8 @@ async function main(){
   ]);
 }
 main()
-  .then(()=>{console.log('success');process.exitCode=0;})
-  .catch((e)=>{console.log('failure '+e.message);process.exitCode=1;});
+  .then(()=>{console.log('success');})
+  .catch((e)=>{console.log('failure '+e.message);});
 ```
 
 ## `Callbacks` usage example
@@ -144,7 +144,7 @@ main()
 ```js
 'use strict';
 const {Callbacks}=require('task-serializer');
-const {exitOnBeforeExit,producer}=require('./demo-lib.js');
+const {producer}=require('./demo-lib.js');
 async function consumer(ts){
   await new Promise((resolve)=>{
     ts.onTaskResolved((resolvedValue)=>{
@@ -168,28 +168,34 @@ async function main(){
   ]);
 }
 main()
-  .then(()=>{console.log('success');process.exitCode=0;})
-  .catch((e)=>{console.log('failure '+e.message);process.exitCode=1;});
-exitOnBeforeExit(2);
+  .then(()=>{console.log('success');})
+  .catch((e)=>{console.log('failure '+e.message);});
 ```
 
 ## `demo-lib.js`
 ```js
+'use strict';
+var {AsyncIter,NextSymbol}=require('task-serializer');
 function snooze(ms){return new Promise(r=>setTimeout(r,ms));}
 function range(len){return [...Array(len).keys()];}
-function exitOnBeforeExit(exitCode){
-  process.on('beforeExit',async()=>{
-    if (typeof process.exitCode=='undefined'){
-      console.error('unexpected "beforeExit" event');
-      process.exit(exitCode);
-    } else 
-      process.exit(process.exitCode);
-  });
-}
 function makepr(){
   let pr={};
   pr.promise=new Promise((r)=>{pr.resolve=r;});
   return pr;
+}
+function logStatus(ts){
+  let wa=ts.getCountWaiting();
+  let wo=ts.getCountWorking();
+  let rest=ts.getCountResolvedTotal();
+  let rejt=ts.getCountRejectedTotal();
+  let fint=ts.getCountFinishedTotal();
+  console.log(
+    `wa:${wa},wo:${wo},rest:${rest},rejt:${rejt},fint:${fint}`);
+  if ((ts instanceof AsyncIter)||(ts instanceof NextSymbol)){
+    let resnr=ts.getCountResolvedNotRead();
+    let rejnr=ts.getCountRejectedNotRead();
+    console.log(`resnr:${resnr},rejnr:${rejnr}`);
+  }
 }
 async function task(id,ms,err=false){
   console.log(`-->enter ${id}`);
@@ -207,7 +213,13 @@ async function producer(ts){
   ts.addEnd();
   console.log('producer finished');
 }
+module.exports.snooze=snooze;
+module.exports.task=task;
+module.exports.range=range;
+module.exports.makepr=makepr;
+module.exports.producer=producer;
 ```
+
 # Esential Information
 
 ## Classes share common input functions
@@ -215,8 +227,7 @@ Each of the classes includes these input functions:
   - `addTask(func,...args)`/`addTask(promise)` to add tasks/promises.
   - `addEnd()` to indicate that no more tasks/promises will be added, thus allowing exit after the pipeline has drained.
 
-
-## Class have differing output functions and behavior
+## Classes have differing output functions and behavior
 The output interface of each of those classes differ, and are suitable for different usage cases.  The following table compares some properties of those classes to help decide which is suitable for a given usage case:
 
 | property    |`AsyncIter`|`NextSymbol`|`WaitAll`|`Callbacks`| 
@@ -225,6 +236,8 @@ The output interface of each of those classes differ, and are suitable for diffe
 | continuous vs. batch |cont | cont    | batch   | cont      |
 | control loop | yes      | yes        | no      | no        |
 | select style | no       | yes        | N/A     | N/A       |
+||||||
+
 
 where 'property' are as follows:
   - 'read buffered':
@@ -261,17 +274,37 @@ Read-buffered classes prioritize rejected-values over resolved-values, and pass 
         - resulting from ``reject(<rejected-value>)` or `throw <rejected value>`
         - The actual values are determined by the task/promise, not by the `TaskSerializer` module.  A rejected-value typically satisfies `(<rejected-value> instanceof Error)`, but that is not mandatory.  
   - *read*
-    - Task/promise outcome has been read by the consumer.  This state might not be reached of reading is abandoned, e.g. due to a rejected-value.
+    - This milestone is seperate from *finished* only in the read-buffered classes `AsyncIter`,`NextSymbol`, and `WaitAll`.  In the case of class `Callbacks`, one of the `onTaskResolved`/`onTaskRejected` callbacks is called immediately when *finished* is reached, so *read* and *finished* are reached simultaneously.
+    - Task/promise outcome has been read by the consumer.  
 
-- The class instance passed through the following milestones, in order:
+- The class instance passes through the following milestones, in order:
   - *started-processing*
     - First task/promise has been *added*.
   - *ended*
     - `addEnd` has been called to guarantee no more tasks/promises will be added. 
-  - *finished-processing*
-    - `addEnd` has been called and all *added* tasks have reached *finished*.
-  - *empty*
-    - `addEnd` has been called and all *added* tasks have reached *read*.
+  - *all-finished*
+    - `addEnd` has been called and all *added* tasks/promises have reached *finished*.
+  - *all-read*
+    - This milestone is seperate from *all-finished* only for the read-buffered classes `AsyncIter`, `NextSymbol`, and `WaitAll`.  In the case of `Callbacks`, one of the callbacks `onResolved`/`onRejected` will be called immediately upon reaching *finished*. 
+
+## Termination
+
+There is no active termination method, but there is passive termination when `instance` is no longer referenced, or processing is deliberately abandoned.
+
+The following two cases are important:
+- *termination-after-all-finished*
+  - In this case the only possible references in the class state are to a buffer of read values.  The class will successfully be garbage collected.
+- *termination-before-all-finished*
+  - In this case at least one task/promise has not resolved or rejected.  The class is not guaranteed to garbage collect in this case.  However, if the JS engine is able to determine that for each task/promise not resolved or rejected, that task/promise is deadlocked(/*), then the class might be garbage collected.  
+
+(/*) 'Deadlocked' means a task/promise is waiting on a promise, but there is no possibility that the waited-on-promise can be resolved.  The prototypical example of such a promise is `new Promise(()=>{})`.  More typically interconnected promises deadlock in a practical example of the [Dining Philosopher's Problem](https://en.wikipedia.org/wiki/Dining_philosophers_problem).  Note that in JS, this will NOT happen to a promise directly or indirectly waiting upon external input, e.g., when waiting upon `process.stdin` while `process.stdin` is active.  
+
+In case of running under nodeJS, There is another important termination case:
+
+- *termination-due-to-unexpected-deadlock*
+  - In the case of nodeJS, when the internal nodeJS event queue becomes empty, nodeJS may decide that the async function referencing our class `instance` is deadlocked, and cause that async function to return. This can be very confusing.  However, in the author's experience, the deadlock is always real - i.e., it is due to programmer error.
+
+  - The nodeJS function `process.onBeforeExit()`, can be helpful in diagnosing unexpected deadlock.  It sets a callback which will be called when nodeJS diagnoses the whole program as being "in deadlock". Example code using `process.onBeforeExit()` can found under the node module `node_modules/task-serializer/usage-examples-nodejs-only/demo-lib.js`.
 
 # APIs
 
@@ -287,7 +320,29 @@ Read-buffered classes prioritize rejected-values over resolved-values, and pass 
   - in either case, the tasks/promises are managed by the instance of `<Classname>` until reaching miletone *read*. The tasks/promises may reject, and those rejections are handled to prevent unhandled promise rejections.    
 - `instance.addEnd()`
   - this a guarantee from the caller that `addTask` will not be called again.  It is required so the instance knows that when all tasks/promises have reached the *finished* milestone, the instance has reached the *finished-processing* milestone.
-- Generally, when possible, *rejected-values* are passed to the consumer before *resolved-values*. `WaitAll.waitAllSettled()` is one exception to that rule. 
+
+The following are informational functions common to all the classes.
+
+- `instance.getCountWaiting()`
+  - When the construct arg `concurrentTaskLimit<=0`, always returns `0`.
+  - Otherwise, returns the number of tasks *added* but not yet *started*.
+- `instance.getCountWorking()`
+  - Returns the number of tasks/promises *started* but not yet *finished*.
+- `instance.getCountResolvedTotal()`
+  - Returns the number of tasks/promises *finished* with a *resolved-value*
+- `instance.getCountRejectedTotal()`
+  - Returns the number of tasks/promises *finished* with a *rejected-value*
+- `instance.getCountFinishedTotal()`
+  - Returns the sum of `instance.getCountResolvedTotal()` and `instance.getCountRejectedTotal()`
+
+The following are informational functions available only in the read-buffered classes `AsyncIter` and `NextSymbol`:
+
+- `instance.getCountResolvedNotRead()`
+  - Returns the number of tasks/promises *finished* with a *resolved-value*, but which are not yet *read*
+- `instance.getCountRejectedNotRead()`
+  - Returns the number of tasks/promises *finished* with a *rejected-value*, but which are not yet *read*
+- `instance.getCountFinishedNotRead()`
+  - Returns the sum of `instance.getCountResolvedNotRead()` and `instance.getCountRejectedNotRead()`
 
 ## `AsyncIter` only API
 - see [`AsyncIter` usage example](#asynciter-usage-example) for example.
@@ -295,20 +350,20 @@ Read-buffered classes prioritize rejected-values over resolved-values, and pass 
 - `instance=new AsyncIter({concurrentTaskLimit=0}={})`
   - See [API shared by all classes](#api-shared-by-all-classes).
 - explicit async `instance.next()` or implicit async `for await (iter of instance)`
-  - There are 3 possible outcome categories: *resolved-value*, *rejected-value*, and *instance-empty*, where *instance-empty* indicated the instance has reached the *empty* milestone.
+  - There are 3 possible outcome categories: *resolved-value*, *rejected-value*, and *all-read*, where *all-read* indicates that the instance has reached the *all-read* milestone.
   - case: explicit
     - case: *resolved-value*
       - returns `{done:false,value:<resolved-value>}`
     - case: *rejected-value*
       - throws `<rejected-value>`
-    - case: *instance-empty*
+    - case: *all-read*
       - returns `{done:true}`
   - case: implicit
     - case: *resolved-value*
       - `iter` will be the `<resolved-value>` 
     - case: *rejected-value*
       - throws `<rejected-value>`
-    - case: *instance-empty*
+    - case: *all-read*
       - breaks from loop.
   
 ## `NextSymbol` only API
@@ -317,10 +372,10 @@ Read-buffered classes prioritize rejected-values over resolved-values, and pass 
 - `instance=new NextSymbol({concurrentTaskLimit=0}={})`
   - See [API shared by all classes](#api-shared-by-all-classes).
 - async `instance.nextSymbol()`
-  Returns a value strictly equal to one of `instance.symbolTaskResolved()`, `instance.symbolTaskRejected()`, or `instance.symbolEnd()`.
+  Returns a value strictly equal to one of `instance.symbolTaskResolved()`, `instance.symbolTaskRejected()`, or `instance.symbolAllRead()`.
   - case `instance.symbolTaskResolved()`: indicates a task/promise *resolved-value* is ready to be read.
   - case `instance.symbolTaskRejected()`: indicates a task/promise *rejected-value* is ready to be read.
-  - case `instance.symbolTaskResolved()`: indicates the instance milestone *empty* has been reached.
+  - case `instance.symbolAllRead()`: indicates the instance milestone *all-read* has been reached.
 - `instance.getTaskResolvedValue()`
   - This is a sync function intended to be called immediately after `async instance.nextSymbol()` has returned a value equal to `instance.symbolTaskResolved()`
   - It returns the next *resolved-value* of some task/promise.
@@ -356,12 +411,5 @@ Read-buffered classes prioritize rejected-values over resolved-values, and pass 
 - NOTES:
   - Each `instance.on<*>` function should be called only once per instance.  Only one callback per function is actually registered.
   - Each `instance.on<*>`function must be called before the instance has reached the *processing* milestone, i.e., before the first call to `addTask`.
-
-# TODO:
-- Add in informational functions
-  - `instance.getCountAddedNotStarted()`
-  - `instance.getCountStarterNotFinished()`
-  - `instance.getCountFinishedNotRead()`
-  - `instance.getCountRead()`
 
 

@@ -1,6 +1,6 @@
 'use strict';
 const {NextSymbol}=require('task-serializer');
-const {makepr,producer}=require('./demo-lib.js');
+const {exitOnBeforeExit,makepr,producer}=require('./demo-lib.js');
 var somethingElse=makepr();
 var iv=setInterval(()=>{somethingElse.resolve("somethingElse");},300);  
 async function consumer(ts){
@@ -37,5 +37,6 @@ async function main(){
   await Promise.all([consumer(ts),producer(ts)]);
 }
 main()
-  .then(()=>{console.log('success');})
-  .catch((e)=>{console.log('failure '+e.message);});
+  .then(()=>{console.log('success');process.exitCode=0;})
+  .catch((e)=>{console.log('failure '+e.message);process.exitCode=1;});
+exitOnBeforeExit(2);

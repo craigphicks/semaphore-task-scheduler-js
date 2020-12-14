@@ -1,14 +1,6 @@
 'use strict';
-//--IF{{RELEASE}}
-//--const {WaitAll}=require('task-serializer');
-//--ELSE
-const {WaitAll}=require('./uif-wait-all.js');
-//--ENDIF
-//--IF{{NODEJS}}
+const {WaitAll}=require('task-serializer');
 const {exitOnBeforeExit,producer}=require('./demo-lib.js');
-//--ELSE
-//--const {producer}=require('./demo-lib.js');
-//--ENDIF
 async function consumer_waitAll(ts){
   try{
     let r=await ts.waitAll();
@@ -36,13 +28,7 @@ async function main(){
     producer(waitAll),
   ]);
 }
-//--IF{{NODEJS}}
 main()
   .then(()=>{console.log('success');process.exitCode=0;})
   .catch((e)=>{console.log('failure '+e.message);process.exitCode=1;});
 exitOnBeforeExit(2);
-//--ELSE
-//--main()
-//--  .then(()=>{console.log('success');})
-//--  .catch((e)=>{console.log('failure '+e.message);});
-//--ENDIF

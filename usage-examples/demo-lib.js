@@ -1,6 +1,26 @@
+'use strict';
+var {AsyncIter,NextSymbol}=require('task-serializer');
 function snooze(ms){return new Promise(r=>setTimeout(r,ms));}
 function range(len){return [...Array(len).keys()];}
-
+function makepr(){
+  let pr={};
+  pr.promise=new Promise((r)=>{pr.resolve=r;});
+  return pr;
+}
+function logStatus(ts){
+  let wa=ts.getCountWaiting();
+  let wo=ts.getCountWorking();
+  let rest=ts.getCountResolvedTotal();
+  let rejt=ts.getCountRejectedTotal();
+  let fint=ts.getCountFinishedTotal();
+  console.log(
+    `wa:${wa},wo:${wo},rest:${rest},rejt:${rejt},fint:${fint}`);
+  if ((ts instanceof AsyncIter)||(ts instanceof NextSymbol)){
+    let resnr=ts.getCountResolvedNotRead();
+    let rejnr=ts.getCountRejectedNotRead();
+    console.log(`resnr:${resnr},rejnr:${rejnr}`);
+  }
+}
 async function task(id,ms,err=false){
   console.log(`-->enter ${id}`);
   if (err)
@@ -8,20 +28,6 @@ async function task(id,ms,err=false){
   await snooze(ms);
   console.log(`<--leave ${id}`);
   return `task ${id}, took ${ms}ms`;
-}
-function exitOnBeforeExit(exitCode){
-  process.on('beforeExit',async()=>{
-    if (typeof process.exitCode=='undefined'){
-      console.error('unexpected "beforeExit" event');
-      process.exit(exitCode);
-    } else 
-      process.exit(process.exitCode);
-  });
-}
-function makepr(){
-  let pr={};
-  pr.promise=new Promise((r)=>{pr.resolve=r;});
-  return pr;
 }
 async function producer(ts){
   for (let i=0; i<6; i++){
@@ -35,5 +41,5 @@ module.exports.snooze=snooze;
 module.exports.task=task;
 module.exports.range=range;
 module.exports.makepr=makepr;
-module.exports.exitOnBeforeExit=exitOnBeforeExit;
 module.exports.producer=producer;
+

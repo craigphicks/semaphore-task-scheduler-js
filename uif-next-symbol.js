@@ -5,20 +5,16 @@ class NextSymbol{
   }={}){
     this._ts=new TaskSerializer(concurrentTaskLimit);
     this._result=TaskSerializer._makepr();
-    this._result.flag=false;
     this._error=TaskSerializer._makepr();
-    this._error.flag=false;
     this._qresults=[];
     this._qerrors=[];
     this._empty=TaskSerializer._makepr();
     this._ts.onTaskResolved((result)=>{
       this._qresults.push(result);
-      this._result.flag=true;
       this._result.resolve();
     });
     this._ts.onTaskRejected((error)=>{
       this._qerrors.push(error);
-      this._error.flag=true;
       this._error.resolve();
     });
     this._ts.onEmpty(()=>{
@@ -26,18 +22,20 @@ class NextSymbol{
     });
     this._symTaskResolved=Symbol('TaskResolved');
     this._symTaskRejected=Symbol('TaskRejected');
-    this._symEmpty=Symbol('empty');
+    this._symAllRead=Symbol('AllRead');
   }
   getTaskResolvedValue(){
-    if (!this._result.flag) throw new Error('getTaskResolvedValue - not ready');
-    this._result=TaskSerializer._makepr();
-    this._result.flag=false;
+    if (!this._qresults.length) 
+      throw new Error('getTaskResolvedValue - not ready');
+    if (this._qresults.length==1)
+      this._result=TaskSerializer._makepr();
     return this._qresults.splice(0,1)[0];
   }
   getTaskRejectedValue(){
-    if (!this._error.flag) throw new Error('getTaskRejectedValue - not ready');
-    this._error=TaskSerializer._makepr();
-    this._error.flag=false;
+    if (!this._qerrors.length) 
+      throw new Error('getTaskRejectedValue - not ready');
+    if (this._qerrors.length==1) 
+      this._error=TaskSerializer._makepr();
     return this._qerrors.splice(0,1)[0];
   }
   addTask(func,...args){
@@ -46,27 +44,29 @@ class NextSymbol{
   addEnd(){
     this._ts.addEnd();
   }
-  // isSymbolEmpty(sym){return sym===this._symEmpty;}
-  // isSymbolTaskResolved(sym){return sym===this._symTaskResolved;}
-  // isSymbolTaskRejected(sym){return sym===this._symTaskRejected;}
-  symbolEmpty(){return this._symEmpty;}
+  symbolAllRead(){return this._symAllRead;}
   symbolTaskResolved(){return this._symTaskResolved;}
   symbolTaskRejected(){return this._symTaskRejected;}
   nextSymbol(){// this promise can be safely abandoned
+    // Note: the order of promises ensures that this._symAllRead
+    // won't be returned until all task results are actually read.
     return Promise.race([
       this._error.promise.then(()=>{return this._symTaskRejected;}),
       this._result.promise.then(()=>{return this._symTaskResolved;}),
-      this._empty.promise.then(()=>{return this._symEmpty;}),
+      this._empty.promise.then(()=>{return this._symAllRead;}),
     ]);
   }
-  // async promiseNextValue(){ // this promise canNOT be safely abandoned
-  //   let sym=await this.promiseNextSymbol();
-  //   if (this.isSymbolTaskRejected(sym))
-  //     throw this.waitTaskRejected();
-  //   else if (this.isSymbolTaskResolved(sym))
-  //     return this.waitTaskResolved();
-  //   else if (this.isSymbolEmpty(sym))
-  //     return sym;    
-  // }
+  // informationals
+  getCountWaiting(){return this._ts.getWaitingCount();}
+  getCountWorking(){return this._ts.getWorkingCount();}
+  getCountResolvedNotRead(){return this._qresults.length;}
+  getCountRejectedNotRead(){return this._qerrors.length;}
+  getCountFinishedNotRead(){
+    return this._qresults.length+this._qerrors.length;
+  }
+  // the following are monotonically increasing totals, 
+  getCountResolvedTotal(){return this._ts.getResolvedCount();}
+  getCountRejectedTotal(){return this._ts.getRejectedCount();}
+  getCountFinishedTotal(){return this._ts.getFinishedCount();}
 }
 module.exports.NextSymbol=NextSymbol;

@@ -1,6 +1,6 @@
 'use strict';
 const {AsyncIter}=require('task-serializer');
-const {producer}=require('./demo-lib.js');
+const {exitOnBeforeExit,producer}=require('./demo-lib.js');
 async function consumer(ai){
   do{
     try{
@@ -18,5 +18,6 @@ async function main(){
   await Promise.all([producer(ai),consumer(ai)]);
 }
 main()
-  .then(()=>{console.log('success');})
-  .catch((e)=>{console.log('failure '+e.message);});
+  .then(()=>{console.log('success');process.exitCode=0;})
+  .catch((e)=>{console.log('failure '+e.message);process.exitCode=1;});
+exitOnBeforeExit(2);

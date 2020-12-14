@@ -1,7 +1,6 @@
 'use strict';
 const {Callbacks}=require('task-serializer');
-const {exitOnBeforeExit,producer}=require('./demo-lib.js');
-
+const {producer}=require('./demo-lib.js');
 async function consumer(ts){
   await new Promise((resolve)=>{
     ts.onTaskResolved((resolvedValue)=>{
@@ -25,7 +24,5 @@ async function main(){
   ]);
 }
 main()
-  .then(()=>{console.log('success');process.exitCode=0;})
-  .catch((e)=>{console.log('failure '+e.message);process.exitCode=1;});
-
-exitOnBeforeExit(2);
+  .then(()=>{console.log('success');})
+  .catch((e)=>{console.log('failure '+e.message);});

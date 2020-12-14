@@ -1,8 +1,9 @@
 'use strict';
 const {createPreprocStream}=require('mini-preproc');
 const fs=require('fs');
-async function main(){
-  let outdir='./usage-examples';
+async function oneSet(nodeJSonly){
+  let outdir=nodeJSonly?
+    './usage-examples-nodejs-only':'./usage-examples';
   fs.mkdirSync(outdir,{recursive:true});
   let proms=[];
   for (let fn of [
@@ -15,7 +16,11 @@ async function main(){
     proms.push(new Promise((resolve,reject)=>{
       fs.createReadStream('./'+fn)
         .on('error',reject)
-        .pipe(createPreprocStream({RELEASE:true},{strip:true}))
+        .pipe(createPreprocStream({
+          RELEASE:true,
+          NODEJS:nodeJSonly
+        },
+        {strip:true}))
         .on('error',reject)
         .pipe(fs.createWriteStream(outdir+'/'+fn))
         .on('error',reject)
@@ -24,6 +29,10 @@ async function main(){
   }
   await Promise.all(proms);
 }
+async function main(){
+  await Promise.all([oneSet(false),oneSet(true)]);
+}
+//oneSet(false)
 main()
   .then(()=>{console.log("success"); process.exitCode=0;})
   .catch((e)=>{console.log("failure: "+e.message); process.exitCode=1;});

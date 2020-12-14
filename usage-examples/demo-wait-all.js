@@ -1,7 +1,6 @@
 'use strict';
 const {WaitAll}=require('task-serializer');
-const {exitOnBeforeExit,producer}=require('./demo-lib.js');
-
+const {producer}=require('./demo-lib.js');
 async function consumer_waitAll(ts){
   try{
     let r=await ts.waitAll();
@@ -30,6 +29,5 @@ async function main(){
   ]);
 }
 main()
-  .then(()=>{console.log('success');process.exitCode=0;})
-  .catch((e)=>{console.log('failure '+e.message);process.exitCode=1;});
-exitOnBeforeExit(2);
+  .then(()=>{console.log('success');})
+  .catch((e)=>{console.log('failure '+e.message);});

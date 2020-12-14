@@ -1,13 +1,5 @@
-//--IF{{RELEASE}}
-//--ELSE
-/* eslint-disable indent */
-//--ENDIF
 'use strict';
-//--IF{{RELEASE}}
-//--var {AsyncIter,NextSymbol}=require('task-serializer');
-//--ELSE
-var {AsyncIter,NextSymbol}=require('./index');
-//--ENDIF
+var {AsyncIter,NextSymbol}=require('task-serializer');
 function snooze(ms){return new Promise(r=>setTimeout(r,ms));}
 function range(len){return [...Array(len).keys()];}
 function makepr(){
@@ -39,17 +31,9 @@ async function task(id,ms,err=false){
 }
 async function producer(ts){
   for (let i=0; i<6; i++){
-//--IF{{RELEASE}}
-//--ELSE
-    logStatus(ts);
-//--ENDIF
     ts.addTask(task,i,2**(10-i),(i+1)%3==0);
     await snooze(100);
   }
-//--IF{{RELEASE}}
-//--ELSE
-  logStatus(ts);
-//--ENDIF
   ts.addEnd();
   console.log('producer finished');
 }
@@ -59,7 +43,6 @@ module.exports.range=range;
 module.exports.makepr=makepr;
 module.exports.producer=producer;
 
-//--IF{{NODEJS}}
 function exitOnBeforeExit(exitCode){
   process.on('beforeExit',async()=>{
     if (typeof process.exitCode=='undefined'){
@@ -70,4 +53,3 @@ function exitOnBeforeExit(exitCode){
   });
 }
 module.exports.exitOnBeforeExit=exitOnBeforeExit;
-//--ENDIF

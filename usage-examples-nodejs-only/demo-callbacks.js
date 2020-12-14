@@ -1,14 +1,6 @@
 'use strict';
-//--IF{{RELEASE}}
-//--const {Callbacks}=require('task-serializer');
-//--ELSE
-const {Callbacks}=require('./uif-callbacks.js');
-//--ENDIF
-//--IF{{NODEJS}}
+const {Callbacks}=require('task-serializer');
 const {exitOnBeforeExit,producer}=require('./demo-lib.js');
-//--ELSE
-//--const {producer}=require('./demo-lib.js');
-//--ENDIF
 async function consumer(ts){
   await new Promise((resolve)=>{
     ts.onTaskResolved((resolvedValue)=>{
@@ -31,13 +23,7 @@ async function main(){
     producer(ts)
   ]);
 }
-//--IF{{NODEJS}}
 main()
   .then(()=>{console.log('success');process.exitCode=0;})
   .catch((e)=>{console.log('failure '+e.message);process.exitCode=1;});
 exitOnBeforeExit(2);
-//--ELSE
-//--main()
-//--  .then(()=>{console.log('success');})
-//--  .catch((e)=>{console.log('failure '+e.message);});
-//--ENDIF
