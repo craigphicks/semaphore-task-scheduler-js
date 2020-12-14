@@ -4,7 +4,7 @@
   "description": "Serialize tasks/promises for integrated control.  Option for limiting number of concurrent tasks.",
   "main": "index.js",
   "scripts": {
-    "test": "./script-test.sh"
+    "test": "node ./script-test.js"
   },
   "engines": {
     "node": ">=12.9"
