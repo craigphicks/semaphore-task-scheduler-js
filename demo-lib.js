@@ -26,7 +26,8 @@ function logStatus(ts){
   if ((ts instanceof AsyncIter)||(ts instanceof NextSymbol)){
     let resnr=ts.getCountResolvedNotRead();
     let rejnr=ts.getCountRejectedNotRead();
-    console.log(`resnr:${resnr},rejnr:${rejnr}`);
+    let finnr=ts.getCountFinishedNotRead();
+    console.log(`resnr:${resnr},rejnr:${rejnr},finnr:${finnr}`);
   }
 }
 async function task(id,ms,err=false){

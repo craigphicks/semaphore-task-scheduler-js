@@ -22,6 +22,7 @@ class AsyncIter {
       this._emptyFlag=true;
       this._nextpr.resolve();
     }).bind(this));
+    this._asyncIterable=this._createAsyncIterable();
     //this._lnk_reset_nextpr=this._reset_nextpr.bind(this);
   }
   _reset_nextpr(){
@@ -34,7 +35,8 @@ class AsyncIter {
   addEnd(){
     this._sts.addEnd();
   }
-  [Symbol.asyncIterator](){
+  //getIterable(){return this[Symbol.asyncIterator]();}
+  _createAsyncIterable(){
     let that=this;
     return {
       async next(){
@@ -57,6 +59,8 @@ class AsyncIter {
       }
     };
   }
+  [Symbol.asyncIterator](){return this._asyncIterable; }
+  next(){return this._asyncIterable.next();}
   // informationals
   getCountWaiting(){return this._sts.getWaitingCount();}
   getCountWorking(){return this._sts.getWorkingCount();}
