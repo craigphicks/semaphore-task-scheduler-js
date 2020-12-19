@@ -1,0 +1,15 @@
+
+{
+  "extends": "@tsconfig/node10/tsconfig.json",
+
+  "compilerOptions": {
+    "declaration": true,
+    "noImplicitAny": true,
+    "skipLibCheck": false,
+    "sourceMap": true,
+    "outDir": "dist"
+  },
+  "files":[
+    "src-ts/task-serializer.ts",
+  ]
+}

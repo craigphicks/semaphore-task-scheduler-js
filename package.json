@@ -18,7 +18,9 @@
   "author": "craigphicks",
   "license": "ISC",
   "devDependencies": {
-    "mini-preproc": "^1.0.3"
+    "@tsconfig/recommended": "^1.0.1",
+    "@types/node": "^14.14.14",
+    "mini-preproc": "^1.1.2"
   },
   "dependencies": {}
 }
