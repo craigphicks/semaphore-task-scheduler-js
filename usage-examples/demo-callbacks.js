@@ -17,7 +17,7 @@ async function consumer(ts){
   console.log('consumer finished');
 }
 async function main(){
-  let ts=new Callbacks({concurrentLimit:2});
+  let ts=new Callbacks({concurrentTaskLimit:2});
   await Promise.all([
     consumer(ts),// consumer must initialize first
     producer(ts)

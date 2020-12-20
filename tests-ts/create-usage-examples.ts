@@ -2,9 +2,9 @@
 const {createPreprocStream}=require('mini-preproc');
 const fs=require('fs');
 
-async function oneSet(nodeJSonly){
+async function oneSet(nodeJSonly:boolean){
   let outdir=nodeJSonly?
-    'usage-examples-nodejs-only':'usage-examples';
+    'usage-examples-nodejs-only-ts':'usage-examples-ts';
   outdir=__dirname+'/../'+outdir;
   fs.rmdirSync(outdir,{recursive:true});
   let indir=__dirname;

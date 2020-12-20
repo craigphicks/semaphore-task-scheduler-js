@@ -2,7 +2,7 @@
 //--IF{{RELEASE}}
 //--const {Callbacks}=require('task-serializer');
 //--ELSE
-const {Callbacks}=require('../src-js/uif-callbacks.js');
+const {Callbacks}=require('../dist/uif-callbacks.js');
 //--ENDIF
 //--IF{{NODEJS}}
 const {exitOnBeforeExit,producer}=require('./demo-lib.js');
@@ -25,7 +25,7 @@ async function consumer(ts){
   console.log('consumer finished');
 }
 async function main(){
-  let ts=new Callbacks({concurrentLimit:2});
+  let ts=new Callbacks({concurrentTaskLimit:2});
   await Promise.all([
     consumer(ts),// consumer must initialize first
     producer(ts)

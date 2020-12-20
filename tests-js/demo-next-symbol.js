@@ -2,7 +2,7 @@
 //--IF{{RELEASE}}
 //--const {NextSymbol}=require('task-serializer');
 //--ELSE
-const {NextSymbol}=require('../src-js/uif-next-symbol.js');
+const {NextSymbol}=require('../dist/uif-next-symbol.js');
 //--ENDIF
 //--IF{{NODEJS}}
 const {exitOnBeforeExit,makepr,producer}=require('./demo-lib.js');

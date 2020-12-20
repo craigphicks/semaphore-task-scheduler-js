@@ -1,5 +1,5 @@
 'use_strict';
-const {TaskSerializer}=require('../src-js/task-serializer.js');
+const {TaskSerializer}=require('../dist/task-serializer.js');
 const assert=require('assert');
 
 

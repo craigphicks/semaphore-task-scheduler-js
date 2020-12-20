@@ -3,7 +3,7 @@
 //--const {AsyncIter}=require('task-serializer');
 //--ELSE
 /* eslint-disable no-constant-condition */
-const {AsyncIter}=require('../src-js/uif-async-iter.js');
+const {AsyncIter}=require('../dist/uif-async-iter.js');
 //--ENDIF
 //--IF{{NODEJS}}
 const {exitOnBeforeExit,producer}=require('./demo-lib.js');

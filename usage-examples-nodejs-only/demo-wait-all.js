@@ -17,12 +17,12 @@ async function consumer_waitAllSettled(ts){
   console.log('consumer finished');
 }
 async function main(){
-  let waitAll=new WaitAll({concurrentLimit:2});
+  let waitAll=new WaitAll({concurrentTaskLimit:2});
   await Promise.all([
     consumer_waitAll(waitAll),
     producer(waitAll),
   ]);
-  waitAll=new WaitAll({concurrentLimit:2});
+  waitAll=new WaitAll({concurrentTaskLimit:2});
   await Promise.all([
     consumer_waitAllSettled(waitAll),
     producer(waitAll),

@@ -6,7 +6,7 @@
 //--IF{{RELEASE}}
 //--var {AsyncIter,NextSymbol}=require('task-serializer');
 //--ELSE
-var {AsyncIter,NextSymbol}=require('./index');
+var {AsyncIter,NextSymbol}=require('../dist/index');
 //--ENDIF
 function snooze(ms){return new Promise(r=>setTimeout(r,ms));}
 function range(len){return [...Array(len).keys()];}

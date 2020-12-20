@@ -2,7 +2,7 @@
 //--IF{{RELEASE}}
 //--const {WaitAll}=require('task-serializer');
 //--ELSE
-const {WaitAll}=require('../src-js/uif-wait-all.js');
+const {WaitAll}=require('../dist/uif-wait-all.js');
 //--ENDIF
 //--IF{{NODEJS}}
 const {exitOnBeforeExit,producer}=require('./demo-lib.js');
@@ -25,12 +25,12 @@ async function consumer_waitAllSettled(ts){
   console.log('consumer finished');
 }
 async function main(){
-  let waitAll=new WaitAll({concurrentLimit:2});
+  let waitAll=new WaitAll({concurrentTaskLimit:2});
   await Promise.all([
     consumer_waitAll(waitAll),
     producer(waitAll),
   ]);
-  waitAll=new WaitAll({concurrentLimit:2});
+  waitAll=new WaitAll({concurrentTaskLimit:2});
   await Promise.all([
     consumer_waitAllSettled(waitAll),
     producer(waitAll),

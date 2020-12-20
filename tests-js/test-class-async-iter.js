@@ -1,5 +1,5 @@
 'use strict';
-var {AsyncIter,/*NextSymbol*/}=require('../src-js/index.js');
+var {AsyncIter,/*NextSymbol*/}=require('../dist/index.js');
 var {task,/*makepr,snooze*/}=require('./demo-lib.js');
 async function testAsyncIter(){
   let ts=new AsyncIter();

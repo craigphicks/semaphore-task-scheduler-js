@@ -1,6 +1,6 @@
 'use strict';
 var cp=require('child_process');
-var {AsyncIter}=require('../src-js/index');
+var {AsyncIter}=require('../dist/index');
 
 async function testone(cmd,aargs){
   return await new Promise((resolve,reject)=>{

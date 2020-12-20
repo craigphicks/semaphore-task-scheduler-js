@@ -50,10 +50,12 @@ var progs=[
   "test-class-next-symbol.js",
 ];
 
+function moduleDirname(){return __dirname;}
+
 async function main(){
   let ts=new AsyncIter();
   for (let prog of progs)
-    ts.addTask(testone,'node',['./'+prog]);
+    ts.addTask(testone,'node',[moduleDirname()+'/'+prog]);
   ts.addEnd();
   for await(let iter of ts)
     console.log(iter);
