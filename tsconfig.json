@@ -1,15 +1,31 @@
-
 {
-  "extends": "@tsconfig/node10/tsconfig.json",
+  "extends": "@tsconfig/recommended/tsconfig.json",
 
   "compilerOptions": {
     "declaration": true,
     "noImplicitAny": true,
     "skipLibCheck": false,
     "sourceMap": true,
-    "outDir": "dist"
+    "outDir": "dist",
+    "lib":[
+      "es2015",
+      "es2016",
+      "es2017",
+      "es2018",
+      "es2019",
+      "es2020",
+      "esnext"
+    ]
   },
+  "-files":["src-ts/temp.ts"],
   "files":[
-    "src-ts/task-serializer.ts",
+    "src-ts/lib.ts",
+    "src-ts/uif-common.ts",
+    "./src-ts/task-serializer.ts",
+    "./src-ts/uif-async-iter.ts",
+    "./src-ts/uif-callbacks.ts",
+    "./src-ts/uif-next-symbol.ts",
+    "./src-ts/uif-wait-all.ts",
+    "./src-ts/index.ts"
   ]
 }

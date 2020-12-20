@@ -1,17 +1,17 @@
 'use strict';
 //--IF{{RELEASE}}
-//--const {Callbacks}=require('task-serializer');
+//--import {Callbacks} from 'task-serializer';
 //--ELSE
-const {Callbacks}=require('../src-js/uif-callbacks.js');
+import {Callbacks} from '../dist/uif-callbacks.js';
 //--ENDIF
 //--IF{{NODEJS}}
-const {exitOnBeforeExit,producer}=require('./demo-lib.js');
+import {exitOnBeforeExit,producer} from './demo-lib.js';
 //--ELSE
 //--const {producer}=require('./demo-lib.js');
 //--ENDIF
-async function consumer(ts){
-  await new Promise((resolve)=>{
-    ts.onTaskResolved((resolvedValue)=>{
+async function consumer(ts: Callbacks){
+  await new Promise<void>((resolve)=>{
+    ts.onTaskResolved((resolvedValue:any)=>{
       console.log(`onTaskResolved ${resolvedValue}`);
     });
     ts.onTaskRejected((rejectedValue)=>{
@@ -25,7 +25,7 @@ async function consumer(ts){
   console.log('consumer finished');
 }
 async function main(){
-  let ts=new Callbacks({concurrentLimit:2});
+  let ts=new Callbacks({concurrentTaskLimit:2});
   await Promise.all([
     consumer(ts),// consumer must initialize first
     producer(ts)

@@ -1,16 +1,16 @@
-'use strict';
+
 //--IF{{RELEASE}}
-//--const {AsyncIter}=require('task-serializer');
+//--import {AsyncIter}=require('task-serializer)
 //--ELSE
-/* eslint-disable no-constant-condition */
-const {AsyncIter}=require('../src-js/uif-async-iter.js');
+import {AsyncIter} from '../dist/index';
 //--ENDIF
+
 //--IF{{NODEJS}}
-const {exitOnBeforeExit,producer}=require('./demo-lib.js');
+import {exitOnBeforeExit,producer} from './demo-lib';
 //--ELSE
-//--const {producer}=require('./demo-lib.js');
+//--import {producer}=require('./demo-lib');
 //--ENDIF
-async function consumer(ai){
+async function consumer(ai: AsyncIter){
   do{
     try{
       for await(const res of ai){

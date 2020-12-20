@@ -1,6 +1,6 @@
-'use strict';
-var {AsyncIter,/*NextSymbol*/}=require('../src-js/index.js');
-var {task,/*makepr,snooze*/}=require('./demo-lib.js');
+
+import {AsyncIter,/*NextSymbol*/} from '../dist/index.js';
+import {task,/*makepr,snooze*/} from './demo-lib.js';
 async function testAsyncIter(){
   let ts=new AsyncIter();
   ts.addTask(task,0,11,false);
@@ -13,7 +13,7 @@ async function testAsyncIter(){
   r.push(await ts.next().catch(e=>e.message));
   r.push(await ts.next().catch(e=>e.message));
   r.push(await ts.next().catch(e=>e.message));
-  console.log(JSON.stringify(r,0,2));
+  console.log(JSON.stringify(r,null,2));
 }
 testAsyncIter()
   .then(()=>{console.log("success");process.exitCode=0;})

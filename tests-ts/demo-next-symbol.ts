@@ -1,17 +1,17 @@
 'use strict';
 //--IF{{RELEASE}}
-//--const {NextSymbol}=require('task-serializer');
+//--import {NextSymbol} from 'task-serializer';
 //--ELSE
-const {NextSymbol}=require('../src-js/uif-next-symbol.js');
+import {NextSymbol} from '../dist/uif-next-symbol.js';
 //--ENDIF
 //--IF{{NODEJS}}
-const {exitOnBeforeExit,makepr,producer}=require('./demo-lib.js');
+import {exitOnBeforeExit,makepr,producer} from './demo-lib.js';
 //--ELSE
-//--const {makepr,producer}=require('./demo-lib.js');
+//--import {makepr,producer} from './demo-lib.js';
 //--ENDIF
 var somethingElse=makepr();
 var iv=setInterval(()=>{somethingElse.resolve("somethingElse");},300);  
-async function consumer(ts){
+async function consumer(ts: NextSymbol){
   let emptied=false;
   while(!emptied){
     let next = await Promise.race([

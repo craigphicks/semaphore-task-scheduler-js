@@ -1,8 +1,8 @@
 'use strict';
-var cp=require('child_process');
-var {AsyncIter}=require('../src-js/index');
+import cp=require('child_process');
+import {AsyncIter} from '../dist/index';
 
-async function testone(cmd,aargs){
+async function testone(cmd:string,aargs:string[]){
   return await new Promise((resolve,reject)=>{
     let outbuf=Buffer.from('');
     let errbuf=Buffer.from('');
@@ -13,11 +13,15 @@ async function testone(cmd,aargs){
         `[spawn fail] `+
         `${cmd},${JSON.stringify(aargs)}:: ${e.message}`));
     }
+    // @ts-ignore
     child.stdout.on('data',(data)=>{outbuf+=data;});
+    // @ts-ignore
     child.stderr.on('data',(data)=>{errbuf+=data;});
+    // @ts-ignore
     child.on('error',(e)=>{
       reject(`${cmd},${JSON.stringify(aargs)}:: ${e.message}`);
     });
+    // @ts-ignore
     child.on('close',(code,signal)=>{
       if (code||signal){
         let msg=`
@@ -49,7 +53,7 @@ var progs=[
 async function main(){
   let ts=new AsyncIter();
   for (let prog of progs)
-    ts.addTask(testone,'node',['./tests-js/'+prog]);
+    ts.addTask(testone,'node',['./'+prog]);
   ts.addEnd();
   for await(let iter of ts)
     console.log(iter);

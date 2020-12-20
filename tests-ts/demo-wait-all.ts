@@ -1,36 +1,37 @@
 'use strict';
 //--IF{{RELEASE}}
-//--const {WaitAll}=require('task-serializer');
+//--import {WaitAll} from 'task-serializer';
 //--ELSE
-const {WaitAll}=require('../src-js/uif-wait-all.js');
+import {WaitAll} from '../dist/uif-wait-all.js';
 //--ENDIF
+
 //--IF{{NODEJS}}
-const {exitOnBeforeExit,producer}=require('./demo-lib.js');
+import {exitOnBeforeExit,producer} from './demo-lib.js';
 //--ELSE
-//--const {producer}=require('./demo-lib.js');
+//--import {producer} from './demo-lib.js';
 //--ENDIF
-async function consumer_waitAll(ts){
+async function consumer_waitAll(ts: WaitAll){
   try{
     let r=await ts.waitAll();
     console.log(`ts.waitAll() returned`);
-    console.log(JSON.stringify(r,0,2));
+    console.log(JSON.stringify(r,null,2));
   }catch(e){
     console.log(`ts.waitAll() caught ${e.message}`);
   }
 }
-async function consumer_waitAllSettled(ts){
+async function consumer_waitAllSettled(ts: WaitAll){
   let r=await ts.waitAllSettled();
   console.log(`ts.waitAllSettled() returned`);
-  console.log(JSON.stringify(r,0,2));
+  console.log(JSON.stringify(r,null,2));
   console.log('consumer finished');
 }
 async function main(){
-  let waitAll=new WaitAll({concurrentLimit:2});
+  let waitAll=new WaitAll({concurrentTaskLimit:2});
   await Promise.all([
     consumer_waitAll(waitAll),
     producer(waitAll),
   ]);
-  waitAll=new WaitAll({concurrentLimit:2});
+  waitAll=new WaitAll({concurrentTaskLimit:2});
   await Promise.all([
     consumer_waitAllSettled(waitAll),
     producer(waitAll),

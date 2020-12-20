@@ -4,13 +4,19 @@
   "description": "Serialize tasks/promises for integrated control.  Option for limiting number of concurrent tasks.",
   "main": "index.js",
   "scripts": {
-    "test": "node ./script-test.js"
+    "test": "node ./tests-js/script-test.js",
+    "build-examples-js": "node ./tests-js/create-usage-examples.js",
+    "build-dist": "tsc",
+    "clean-dist": "rm dist/*",
+    "clean-tests": "rm dist-tests/*",
+    "clean-all": "rm dist/* dist-tests/*"
   },
   "engines": {
     "node": ">=12.9"
   },
   "keywords": [
     "top down",
+    "serializer",
     "serialize events",
     "serialize tasks",
     "concurrent task limit"
@@ -18,9 +24,13 @@
   "author": "craigphicks",
   "license": "ISC",
   "devDependencies": {
+    "@tsconfig/node10": "^1.0.7",
+    "@tsconfig/node12": "^1.0.7",
+    "@tsconfig/node14": "^1.0.0",
     "@tsconfig/recommended": "^1.0.1",
     "@types/node": "^14.14.14",
-    "mini-preproc": "^1.1.2"
+    "mini-preproc": "^1.1.2",
+    "typescript": "^4.1.3"
   },
   "dependencies": {}
 }

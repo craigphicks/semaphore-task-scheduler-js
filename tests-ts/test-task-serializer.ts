@@ -1,11 +1,13 @@
 'use_strict';
-const {TaskSerializer}=require('../src-js/task-serializer.js');
-const assert=require('assert');
+import {TaskSerializer} from '../dist/task-serializer.js';
+import assert=require('assert');
 
 
-function makePr(){
+function makePr():{promise:Promise<void>,resolve:()=>void}{
   let pr={};
+  // @ts-expect-error
   pr.promise=new Promise(r=>pr.resolve=r);
+  // @ts-expect-error
   return pr;
 }
 
@@ -17,7 +19,7 @@ async function test_TaskSerializer_phase1(){
   sts.onEmpty(()=>{
     end_pr.resolve();
   });
-  let snooze=(t)=>{return new Promise((r)=>{setTimeout(r,t);});};
+  let snooze=(t:number)=>{return new Promise((r)=>{setTimeout(r,t);});};
   let logStatus=async()=>{
     await snooze(0);
     console.log(
@@ -26,7 +28,10 @@ async function test_TaskSerializer_phase1(){
       +`finished=${sts.getFinishedCount()}`
     );
   };
-  let ftask=async(n,qw1,qwAll=null)=>{
+  let ftask=async(n:number,
+      qw1:Promise<void>,
+      qwAll:Promise<void>|null=null
+    )=>{
     console.log(`ftask ${n} after start`);
     if (!qwAll)
       await qw1;
@@ -42,8 +47,8 @@ async function test_TaskSerializer_phase1(){
     console.log(`ftask ${n} before end`);
     return;
   };
-  let myTaskResolves=[];
-  let myResolve=async(n)=>{
+  let myTaskResolves:(()=>void)[]=[];
+  let myResolve=async(n:number)=>{
     console.log(`signal ftask ${n} to end`);
     myTaskResolves[n]();
     snooze(0);
@@ -56,7 +61,7 @@ async function test_TaskSerializer_phase1(){
     myTaskResolves.push(pr.resolve);
     return pr.promise;
   };
-  let assertStatus=async(working,waiting,finished)=>{
+  let assertStatus=async(working:number,waiting:number,finished:number)=>{
     snooze(0);
     let expected={working,waiting,finished};
     let actual={
@@ -153,7 +158,7 @@ async function test_TaskSerializer_phase1(){
 
   console.log('==== PART3 =====');
   myWaitableReset();
-  sts=new TaskSerializer(2,false);
+  sts=new TaskSerializer(2);
   let empty_pr=makePr();
   let emptyCallbackSuccess=false;
   sts.onEmpty(()=>{
@@ -177,19 +182,19 @@ async function test_TaskSerializer_phase1(){
   assert.strictEqual(emptyCallbackSuccess,true,"emptyCallbackSuccess");
 }
 
-async function test_TaskSerializer_phase2(variant){
+async function test_TaskSerializer_phase2(variant:number){
   console.log(`---- test_TaskSerializer_phase2 variant=${variant} ----`);
-  let snooze=(t)=>{return new Promise((r)=>{setTimeout(r,t);});};
+  let snooze=(t:number)=>{return new Promise((r)=>{setTimeout(r,t);});};
   let emptyProm=makePr();
   let [onTaskResolvedCalled,onTaskRejectedCalled,onEmptyCalled]=[0,0,0];
-  let onTaskResolvedCb=(ret)=>{onTaskResolvedCalled++;console.log(`onTaskResolved ${ret}`);};
-  let onTaskRejectedCb=(e)=>{onTaskRejectedCalled++;console.log(`onTaskResolved ${e.message}`);};
+  let onTaskResolvedCb=(ret:any)=>{onTaskResolvedCalled++;console.log(`onTaskResolved ${ret}`);};
+  let onTaskRejectedCb=(e:Error)=>{onTaskRejectedCalled++;console.log(`onTaskResolved ${e.message}`);};
   let onEmptyCb=()=>{onEmptyCalled++;console.log(`onEmpty`);emptyProm.resolve();};
   let sts=new TaskSerializer(2);
   sts.onTaskResolved(onTaskResolvedCb);
   sts.onTaskRejected(onTaskRejectedCb);
   sts.onEmpty(onEmptyCb);
-  let task=async(idstr,isError,waitable)=>{
+  let task=async(idstr:string,isError:boolean,waitable:Promise<void>)=>{
     await waitable;
     await snooze(20);
     if (!isError)

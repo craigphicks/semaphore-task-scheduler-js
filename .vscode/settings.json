@@ -4,5 +4,6 @@
     },
     "editor.detectIndentation": false,
     "editor.tabSize": 2,
-    "editor.wrappingIndent": "deepIndent"
+    "editor.wrappingIndent": "deepIndent",
+    "typescript.tsdk": "node_modules/typescript/lib"
 }
