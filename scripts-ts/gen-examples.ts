@@ -1,7 +1,8 @@
-import * as fsp from 'fs/promises';
+import {promises as fsp} from 'fs';
 import fs=require('fs');
 import {createPreprocStream} from 'mini-preproc';
 import {create} from 'domain';
+import assert=require('assert');
 
 
 /*
@@ -16,23 +17,30 @@ import {create} from 'domain';
 
 const filenames=[
   //"demo-all.sh",
-  "demo-async-iter.js",
-  "demo-callbacks.js",
-  "demo-next-symbol.js",
-  "demo-wait-all.js",
-  "demo-lib.js",
+  "demo-async-iter",
+  "demo-callbacks",
+  "demo-next-symbol",
+  "demo-wait-all",
+  "demo-lib",
 ];
 
-async function doOne(srcdir:string,dstdir:string,isTS:false){
-  let subdirs:string[]=['any','nodejs'];
+async function doOne(srcdir:string,dstdir:string,isTS:boolean,
+  nonodeSubdir:string,nodeSubdir:string):Promise<void>{
+  assert.strictEqual(typeof srcdir,"string");
+  assert.strictEqual(typeof dstdir,"string");
+  assert.strictEqual(typeof isTS,"boolean");
+  assert.strictEqual(typeof nonodeSubdir,"string");
+  assert.strictEqual(typeof nodeSubdir,"string");
+  let ext=isTS?'.ts':'.js';
+  let subdirs:string[]=[nonodeSubdir,nodeSubdir];
   await fsp.rmdir(dstdir,{recursive:true});
   await fsp.mkdir(dstdir+'/'+subdirs[0],{recursive:true});
   await fsp.mkdir(dstdir+'/'+subdirs[1],{recursive:true});
   let proms:Promise<any>[]=[];
   for (let fn of filenames){
-    let fnin=srcdir+'/'+fn;
+    let fnin=srcdir+'/'+fn+ext;
     for (let isnodejs of [false,true]){
-      let fnout = dstdir+'/'+subdirs[Number(isnodejs)]+'/'+fn;
+      let fnout = dstdir+'/'+subdirs[Number(isnodejs)]+'/'+fn+ext;
       proms.push(new Promise<any>((resolve,reject)=>{
         fs.createReadStream(fnin)
         .pipe(createPreprocStream({
@@ -49,40 +57,10 @@ async function doOne(srcdir:string,dstdir:string,isTS:false){
   }
   await Promise.all(proms);
 }
-async function main(
-  srcdir_js:string,
-  srcdir_ts:string,
-  dstdir_fromjs:string,
-  dstdir_fromts:string,
-){
-  if (
-    typeof srcdir_js!='string'
-  || typeof srcdir_ts!='string'
-  || typeof dstdir_fromjs!='string'
-  || typeof dstdir_fromts!='string'
-  ){
-    console.log(`
-usage:
-  node ${process.argv[1]} srcdir dstdirNodeJSFalse dstdirNodeJsTrue isTS
-`
-    );
-    return;
-  }
+export default doOne
 
-  let proms:Promise<any>[]=[]
-  for (let args of [
-    [srcdir_js,dstdir_fromjs,false],
-    [srcdir_ts,dstdir_fromts,true]
-  ]){
-    if (args[0]==='') continue;
-    // @ts-ignore
-    proms.push(doOne(...args));
-  }
-  await Promise.all(proms);
-
-}
-// @ts-ignore
-main(...process.argv.slice(2))
-  .then(()=>{process.exitCode=0;})
-  .catch((e)=>{console.error(e.message);process.exitCode=1;})
-  ;
+// // @ts-ignore
+// main(...process.argv.slice(2))
+//   .then(()=>{process.exitCode=0;})
+//   .catch((e)=>{console.error(e.message);process.exitCode=1;})
+//   ;

@@ -6,12 +6,8 @@
   "files": [
     "dist/*.js","dist/*.d.ts",
     "tests-js/demo-*.js",
-    "scripts-ts/*.js",
-    "tests-ts/demo-async-iter.ts",
-    "tests-ts/demo-callbacks.ts",
-    "tests-ts/demo-lib.ts",
-    "tests-ts/demo-next-symbol.ts",
-    "tests-ts/demo-wait-all.ts"  
+    "tests-ts/demo-*.ts",
+    "scripts-ts/*.js"
   ],
   "scripts": {
     "test": "node ./tests-js/script-test.js;node ./tests-ts/script-test.js",

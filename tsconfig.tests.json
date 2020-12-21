@@ -15,6 +15,6 @@
       "es2020",
       "esnext"
     ]
-  },  
+  },
   "include": ["./tests-ts/*","./scripts-ts/*"]
 }
