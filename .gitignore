@@ -5,4 +5,12 @@ tmp.*
 *.tmp
 tmp/
 dist-*/
+*-ts/*.d.ts
+*-ts/*.js
+*-ts/*.js.map
+examples*/*
+usage-examples*/*
+
+
+
 

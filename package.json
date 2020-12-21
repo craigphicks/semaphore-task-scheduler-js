@@ -1,15 +1,17 @@
 {
   "name": "task-serializer",
   "version": "2.0.0",
-  "description": "Serialize tasks/promises for integrated control.  Option for limiting number of concurrent tasks.",
+  "description": "Serialize tasks/promises for integrated control. Option for limiting number of concurrent tasks.",
   "main": "dist/index.js",
   "scripts": {
     "test": "node ./tests-js/script-test.js",
-    "build-examples-js": "node ./tests-js/create-usage-examples.js",
     "build-dist": "tsc",
+    "build-tests": "tsc -p tsconfig.tests.json",
+    "build-all": "npm run build-dist; npm run build-tests",
     "clean-dist": "rm dist/*",
-    "clean-tests": "rm dist-tests/*",
-    "clean-all": "rm dist/* dist-tests/*"
+    "clean-tests": "bash -c 'rm -f tests-ts/*.{js,js.map,d.ts}; rm -f scripts-ts/*.{js,js.map,d.ts}' ; rm -f dist-*/*; rmdir dist-* 2>/dev/null || true ; ",
+    "clean-all": "npm run clean-dist; npm run clean-tests",
+    "gen-examples": "node scripts-ts/gen-examples.js ./tests-js ./tests-ts ./examples-js ./examples-ts"
   },
   "engines": {
     "node": ">=12.9"

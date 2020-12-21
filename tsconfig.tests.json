@@ -6,7 +6,6 @@
     "noImplicitAny": true,
     "skipLibCheck": false,
     "sourceMap": true,
-    "outDir":"./dist-tests",
     "lib":[
       "es2015",
       "es2016",
@@ -17,5 +16,5 @@
       "esnext"
     ]
   },  
-  "include": ["./tests-ts/*"]
+  "include": ["./tests-ts/*","./scripts-ts/*"]
 }

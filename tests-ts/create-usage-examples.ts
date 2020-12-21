@@ -7,17 +7,17 @@ async function oneSet(nodeJSonly:boolean){
     'usage-examples-nodejs-only-ts':'usage-examples-ts';
   outdir=__dirname+'/../'+outdir;
   fs.rmdirSync(outdir,{recursive:true});
-  let indir=__dirname;
+  let indir=__dirname+'/../tests-ts';
   fs.mkdirSync(outdir,{recursive:true});
   let proms=[];
   fs.copyFileSync('./demo-all.sh',outdir+'/demo-all.sh');
   for (let fn of [
     //"demo-all.sh",
-    "demo-async-iter.js",
-    "demo-callbacks.js",
-    "demo-next-symbol.js",
-    "demo-wait-all.js",
-    "demo-lib.js",
+    "demo-async-iter.ts",
+    "demo-callbacks.ts",
+    "demo-next-symbol.ts",
+    "demo-wait-all.ts",
+    "demo-lib.ts",
   ]){
     proms.push(new Promise((resolve,reject)=>{
       fs.createReadStream(indir+'/'+fn)

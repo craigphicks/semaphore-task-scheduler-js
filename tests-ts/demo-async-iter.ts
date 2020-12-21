@@ -1,6 +1,6 @@
 
 //--IF{{RELEASE}}
-//--import {AsyncIter}=require('task-serializer)
+//--import {AsyncIter} from 'task-serializer'
 //--ELSE
 import {AsyncIter} from '../dist/index';
 //--ENDIF
@@ -8,7 +8,7 @@ import {AsyncIter} from '../dist/index';
 //--IF{{NODEJS}}
 import {exitOnBeforeExit,producer} from './demo-lib';
 //--ELSE
-//--import {producer}=require('./demo-lib');
+//--import {producer} from './demo-lib';
 //--ENDIF
 async function consumer(ai: AsyncIter){
   do{

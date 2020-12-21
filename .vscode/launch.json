@@ -5,6 +5,16 @@
     "version": "0.2.0",
     "configurations": [
     {
+      "name": "gen-examples",
+      "program": "${workspaceFolder}/scripts-ts/gen-examples.js",
+      "request": "launch",
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "args": ["./tests-js","./tests-ts","./examples-js","./examples-ts"],
+      "type": "pwa-node"
+    },
+    {
       "name": "Attach by Process ID",
       "processId": "${command:PickProcess}",
       "request": "attach",

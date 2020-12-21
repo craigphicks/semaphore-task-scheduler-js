@@ -7,7 +7,7 @@ import {Callbacks} from '../dist/uif-callbacks.js';
 //--IF{{NODEJS}}
 import {exitOnBeforeExit,producer} from './demo-lib.js';
 //--ELSE
-//--const {producer}=require('./demo-lib.js');
+//--const {producer} from './demo-lib.js';
 //--ENDIF
 async function consumer(ts: Callbacks){
   await new Promise<void>((resolve)=>{
