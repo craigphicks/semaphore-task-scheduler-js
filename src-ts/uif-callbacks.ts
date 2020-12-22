@@ -2,15 +2,25 @@
 
 //import type {Promolve,} from './lib'
 //import {makePromolve} from './lib'
-import {Common,CommonCtorParams,TaskCallback,EmptyCallback} 
-  from './uif-common'
+import {
+  Common,
+  CommonCtorParams,
+  TaskCallback,
+  EmptyCallback,
+} from './uif-common';
 
-class Callbacks extends Common{
-  constructor (...args:CommonCtorParams){
-    super(...args)
+class Callbacks extends Common {
+  constructor(...args: CommonCtorParams) {
+    super(...args);
   }
-  onTaskResolved(cb:TaskCallback){this._ts.onTaskResolved(cb);}
-  onTaskRejected(cb:TaskCallback){this._ts.onTaskRejected(cb);}
-  onEmpty(cb:EmptyCallback){this._ts.onEmpty(cb);}
+  onTaskResolved(cb: TaskCallback): void {
+    this._ts.onTaskResolved(cb);
+  }
+  onTaskRejected(cb: TaskCallback): void {
+    this._ts.onTaskRejected(cb);
+  }
+  onEmpty(cb: EmptyCallback): void {
+    this._ts.onEmpty(cb);
+  }
 }
-export {Callbacks}
+export {Callbacks};

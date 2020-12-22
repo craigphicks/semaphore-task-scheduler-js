@@ -1,4 +1,4 @@
-'use strict';
+"use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -30,26 +30,31 @@ class Semaphore {
                 this._count--;
                 return;
             }
-            let res;
-            let p = new Promise((r) => { res = r; });
-            // @ts-expect-error : Variable 'res' is used before being assigned.
-            this._resolveq.push(res);
-            return p;
+            const pr = lib_1.makePromolve();
+            this._resolveq.push(pr.resolve);
+            return pr.promise;
         });
     }
     signal() {
         if (this._resolveq.length)
-            (this._resolveq.splice(0, 1)[0])(); // resolve it 
+            this._resolveq.splice(0, 1)[0]();
+        // resolve it
         else
             this._count++;
     }
-    getCount() { return this._count; }
-    getconcurrentLimit() { return this._concurrentLimit; }
-    getWaitingCount() { return this._resolveq.length; }
+    getCount() {
+        return this._count;
+    }
+    getconcurrentLimit() {
+        return this._concurrentLimit;
+    }
+    getWaitingCount() {
+        return this._resolveq.length;
+    }
 }
 class TaskSerializer {
     constructor(concurrentLimit) {
-        this._usingConcurrentLimit = (concurrentLimit > 0);
+        this._usingConcurrentLimit = concurrentLimit > 0;
         this._sem = null;
         if (this._usingConcurrentLimit)
             this._sem = new Semaphore(concurrentLimit);
@@ -67,19 +72,21 @@ class TaskSerializer {
         return lib_1.makePromolve();
     }
     addTask(...args) {
-        let func = args.shift();
-        let p = (() => __awaiter(this, void 0, void 0, function* () {
+        const func = args.shift();
+        const p = (() => __awaiter(this, void 0, void 0, function* () {
             if (this._usingConcurrentLimit)
                 // @ts-expect-error: Object is possibly 'null'.
                 yield this._sem.wait();
             try {
                 let result;
-                if (func instanceof Function)
+                if (typeof func == 'function')
                     result = yield func(...args);
                 else if (func instanceof Promise) {
                     if (this._usingConcurrentLimit)
                         throw new Error('addTask, illogical to add promise when concurrent limit in use');
                     result = func; // OK
+                    if (args.length > 1)
+                        throw new Error('addTask, extra parameters given after Promise type');
                 }
                 else
                     throw new Error('addTask first arg must be instance of Function or Promise');
@@ -98,8 +105,9 @@ class TaskSerializer {
                 if (this._usingConcurrentLimit)
                     // @ts-expect-error: Object is possibly 'null'.
                     this._sem.signal();
-                if (this._endFlag
-                    && this.getWaitingCount() == 0 && this.getWorkingCount() == 0) {
+                if (this._endFlag &&
+                    this.getWaitingCount() == 0 &&
+                    this.getWorkingCount() == 0) {
                     if (this._onEmptyCallback)
                         this._onEmptyCallback();
                 }
@@ -107,14 +115,15 @@ class TaskSerializer {
         }))();
         this._numAdded++;
         // eslint-disable-next-line no-unused-vars
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         p.catch((e) => { }); // unhandledRejection-defuse, without this, boom!
-        // if (this._taskq) 
-        //   this._taskq.push(p);// defused  
+        // if (this._taskq)
+        //   this._taskq.push(p);// defused
         //return p;
     }
     addEnd() {
         this._endFlag = true;
-        // this section required in case addEnd() is called after all 
+        // this section required in case addEnd() is called after all
         // tasks have already finished, c.f. addTask() similar code.
         if (this.getWaitingCount() == 0 && this.getWorkingCount() == 0) {
             if (this._onEmptyCallback)
@@ -131,11 +140,21 @@ class TaskSerializer {
     getFinishedCount() {
         return this.getResolvedCount() + this.getRejectedCount();
     }
-    getResolvedCount() { return this._numResolved; }
-    getRejectedCount() { return this._numRejected; }
-    onEmpty(callback) { this._onEmptyCallback = callback; }
-    onTaskResolved(callback) { this._onTaskResolvedCallback = callback; }
-    onTaskRejected(callback) { this._onTaskRejectedCallback = callback; }
+    getResolvedCount() {
+        return this._numResolved;
+    }
+    getRejectedCount() {
+        return this._numRejected;
+    }
+    onEmpty(callback) {
+        this._onEmptyCallback = callback;
+    }
+    onTaskResolved(callback) {
+        this._onTaskResolvedCallback = callback;
+    }
+    onTaskRejected(callback) {
+        this._onTaskRejectedCallback = callback;
+    }
 }
 exports.TaskSerializer = TaskSerializer;
 //# sourceMappingURL=task-serializer.js.map

@@ -27,6 +27,7 @@ class NextSymbol extends uif_common_1.Common {
         this._symTaskRejected = Symbol('TaskRejected');
         this._symAllRead = Symbol('AllRead');
     }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     getTaskResolvedValue() {
         if (!this._qresults.length)
             throw new Error('getTaskResolvedValue - not ready');
@@ -34,6 +35,7 @@ class NextSymbol extends uif_common_1.Common {
             this._result = lib_1.makePromolve();
         return this._qresults.splice(0, 1)[0];
     }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     getTaskRejectedValue() {
         if (!this._qerrors.length)
             throw new Error('getTaskRejectedValue - not ready');
@@ -41,21 +43,38 @@ class NextSymbol extends uif_common_1.Common {
             this._error = lib_1.makePromolve();
         return this._qerrors.splice(0, 1)[0];
     }
-    symbolAllRead() { return this._symAllRead; }
-    symbolTaskResolved() { return this._symTaskResolved; }
-    symbolTaskRejected() { return this._symTaskRejected; }
+    symbolAllRead() {
+        return this._symAllRead;
+    }
+    symbolTaskResolved() {
+        return this._symTaskResolved;
+    }
+    symbolTaskRejected() {
+        return this._symTaskRejected;
+    }
     nextSymbol() {
+        // this promise can be safely abandoned
         // Note: the order of promises ensures that this._symAllRead
         // won't be returned until all task results are actually read.
         return Promise.race([
-            this._error.promise.then(() => { return this._symTaskRejected; }),
-            this._result.promise.then(() => { return this._symTaskResolved; }),
-            this._empty.promise.then(() => { return this._symAllRead; }),
+            this._error.promise.then(() => {
+                return this._symTaskRejected;
+            }),
+            this._result.promise.then(() => {
+                return this._symTaskResolved;
+            }),
+            this._empty.promise.then(() => {
+                return this._symAllRead;
+            }),
         ]);
     }
     // informationals
-    getCountResolvedNotRead() { return this._qresults.length; }
-    getCountRejectedNotRead() { return this._qerrors.length; }
+    getCountResolvedNotRead() {
+        return this._qresults.length;
+    }
+    getCountRejectedNotRead() {
+        return this._qerrors.length;
+    }
     getCountFinishedNotRead() {
         return this._qresults.length + this._qerrors.length;
     }

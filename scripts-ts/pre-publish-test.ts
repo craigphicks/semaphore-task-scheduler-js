@@ -1,14 +1,29 @@
-import genExamples from './gen-examples'
-import demoFilenames from './demo-filenames'
-(async()=>{
+import genExamples from './gen-examples';
+import demoFilenames from './demo-filenames';
+(async () => {
   await Promise.all([
-    // @ts-ignore
-    genExamples(demoFilenames,...process.argv.slice(2,4),false,"any","nodejs"),
-    // @ts-ignore
-    genExamples(demoFilenames,...process.argv.slice(4,6),true,"any","nodejs")
-  ])  
+    genExamples(
+      demoFilenames,
+      process.argv[2],
+      process.argv[3],
+      false,
+      'any',
+      'nodejs'
+    ),
+    genExamples(
+      demoFilenames,
+      process.argv[4],
+      process.argv[5],
+      true,
+      'any',
+      'nodejs'
+    ),
+  ]);
 })()
-.then(()=>{process.exitCode=0;})
-.catch((e)=>{console.error(e.message);process.exitCode=1;})
-;
-
+  .then(() => {
+    process.exitCode = 0;
+  })
+  .catch((e) => {
+    console.error(e.message);
+    process.exitCode = 1;
+  });

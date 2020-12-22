@@ -12,8 +12,8 @@ declare type CommonCtorParams = _ns.CommonCtorParams;
 declare class Common {
     _ts: TaskSerializer;
     constructor(...args: CommonCtorParams);
-    addTask(func: Function, ...args: any[]): void;
-    addTask(prom: Promise<any>): void;
+    addTask(func: (...args: any[]) => unknown, ...args: any[]): void;
+    addTask(prom: Promise<unknown>): void;
     addEnd(): void;
     getCountWaiting(): number;
     getCountWorking(): number;

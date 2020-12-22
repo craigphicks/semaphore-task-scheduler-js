@@ -4,12 +4,13 @@ node_modules/
 tmp.*
 *.tmp
 tmp/
-dist-*/
+dist/*
 *-ts/*.d.ts
 *-ts/*.js
 *-ts/*.js.map
-examples*/*
-usage-examples*/*
+examples-js/
+examples-ts/
+
 
 
 

@@ -24,8 +24,8 @@ class WaitAll extends uif_common_1.Common {
         this._ts.onTaskRejected((err) => {
             // defuse the error so it doesn't become unhandled rejection
             // eslint-disable-next-line no-unused-vars
-            let p = Promise.reject(err);
-            p.catch(e => e); //defuse
+            const p = Promise.reject(err);
+            p.catch((e) => e); //defuse
             this._results.push(p);
             this._error.resolve();
         });
@@ -33,16 +33,17 @@ class WaitAll extends uif_common_1.Common {
             this._empty.resolve();
         });
     }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     waitAll() {
         return __awaiter(this, void 0, void 0, function* () {
             yield Promise.race([this._error.promise, this._empty.promise]);
             return yield Promise.all(this._results);
         });
     }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     waitAllSettled() {
         return __awaiter(this, void 0, void 0, function* () {
             yield this._empty.promise;
-            // @ts-ignore
             return yield Promise.allSettled(this._results);
         });
     }

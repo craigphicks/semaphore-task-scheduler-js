@@ -1,45 +1,40 @@
 import type { Promolve } from './lib';
 import { Common, CommonCtorParams } from './uif-common';
 declare class AsyncIter extends Common {
-    _q: any[];
-    _qe: any[];
+    _q: unknown[];
+    _qe: unknown[];
     _nextpr: Promolve;
     _emptyFlag: boolean;
     _asyncIterable: {
         next(): Promise<{
-            done: boolean;
-            value: any[];
+            done: false;
+            value: any;
         } | {
-            done: boolean;
-            value?: undefined;
+            done: true;
         }>;
     };
     constructor(...args: CommonCtorParams);
-    _reset_nextpr(): void;
     _createAsyncIterable(): {
         next(): Promise<{
-            done: boolean;
-            value: any[];
+            done: false;
+            value: any;
         } | {
-            done: boolean;
-            value?: undefined;
+            done: true;
         }>;
     };
     [Symbol.asyncIterator](): {
         next(): Promise<{
-            done: boolean;
-            value: any[];
+            done: false;
+            value: any;
         } | {
-            done: boolean;
-            value?: undefined;
+            done: true;
         }>;
     };
     next(): Promise<{
-        done: boolean;
-        value: any[];
+        done: false;
+        value: any;
     } | {
-        done: boolean;
-        value?: undefined;
+        done: true;
     }>;
     getCountResolvedNotRead(): number;
     getCountRejectedNotRead(): number;

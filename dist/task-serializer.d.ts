@@ -1,11 +1,11 @@
-import type { Resolver, Promolve } from './lib';
+import type { Promolve } from './lib';
 import { EmptyCallback, TaskCallback } from './uif-common';
 declare class Semaphore {
     _concurrentLimit: number;
     _count: number;
-    _resolveq: Resolver[];
+    _resolveq: ((_: void) => void)[];
     constructor(concurrentLimit?: number);
-    wait(): Promise<any>;
+    wait(): Promise<void>;
     signal(): void;
     getCount(): number;
     getconcurrentLimit(): number;
@@ -23,8 +23,8 @@ declare class TaskSerializer {
     _sem: Semaphore | null;
     constructor(concurrentLimit: number);
     static _makepr(): Promolve;
-    addTask(func: Function, ...args: any[]): void;
-    addTask(prom: Promise<any>): void;
+    addTask(func: (...args: any[]) => unknown, ...args: any[]): void;
+    addTask(prom: Promise<unknown>): void;
     addEnd(): void;
     getWorkingCount(): number;
     getWaitingCount(): number;

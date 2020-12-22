@@ -9,9 +9,15 @@ class Callbacks extends uif_common_1.Common {
     constructor(...args) {
         super(...args);
     }
-    onTaskResolved(cb) { this._ts.onTaskResolved(cb); }
-    onTaskRejected(cb) { this._ts.onTaskRejected(cb); }
-    onEmpty(cb) { this._ts.onEmpty(cb); }
+    onTaskResolved(cb) {
+        this._ts.onTaskResolved(cb);
+    }
+    onTaskRejected(cb) {
+        this._ts.onTaskRejected(cb);
+    }
+    onEmpty(cb) {
+        this._ts.onEmpty(cb);
+    }
 }
 exports.Callbacks = Callbacks;
 //# sourceMappingURL=uif-callbacks.js.map

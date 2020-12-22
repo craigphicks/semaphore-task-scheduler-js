@@ -33,18 +33,20 @@ class AsyncIter extends uif_common_1.Common {
         }).bind(this));
         this._asyncIterable = this._createAsyncIterable();
     }
-    _reset_nextpr() {
-        this._nextpr = lib_1.makePromolve();
-    }
+    // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
     _createAsyncIterable() {
-        let that = this;
+        // eslint-disable-next-line @typescript-eslint/no-this-alias
+        const that = this;
         return {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             next() {
                 return __awaiter(this, void 0, void 0, function* () {
                     for (let iter = 0;; iter++) {
-                        if (that._qe.length) // errors have priority
+                        if (that._qe.length)
+                            // errors have priority
                             throw that._qe.splice(0, 1)[0];
-                        if (that._q.length) // "normal" return
+                        if (that._q.length)
+                            // "normal" return
                             return { done: false, value: that._q.splice(0, 1) };
                         // empty flag may be set before q,qe are drained so check this last
                         // "empty" only means the sts member is empty, not ourself.
@@ -57,17 +59,27 @@ class AsyncIter extends uif_common_1.Common {
                         that._nextpr = lib_1.makePromolve();
                     }
                 });
-            }
+            },
         };
     }
-    [Symbol.asyncIterator]() { return this._asyncIterable; }
-    next() { return this._asyncIterable.next(); }
+    // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+    [Symbol.asyncIterator]() {
+        return this._asyncIterable;
+    }
+    // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+    next() {
+        return this._asyncIterable.next();
+    }
     // informationals
-    // getCountWaiting(){return this._ts.getWaitingCount();}
-    // getCountWorking(){return this._ts.getWorkingCount();}
-    getCountResolvedNotRead() { return this._q.length; }
-    getCountRejectedNotRead() { return this._qe.length; }
-    getCountFinishedNotRead() { return this._q.length + this._qe.length; }
+    getCountResolvedNotRead() {
+        return this._q.length;
+    }
+    getCountRejectedNotRead() {
+        return this._qe.length;
+    }
+    getCountFinishedNotRead() {
+        return this._q.length + this._qe.length;
+    }
 }
 exports.AsyncIter = AsyncIter;
 //# sourceMappingURL=uif-async-iter.js.map

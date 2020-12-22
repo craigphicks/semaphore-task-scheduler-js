@@ -20,7 +20,7 @@
   ],
   "scripts": {
     "test": "node ./tests-js/script-test.js;node ./tests-ts/script-test.js",
-    "pre-publish": "node scripts-ts/pre-publish-test.js ./tests-js ./examples-js ./tests-ts ./examples-ts",
+    "prepublishOnly": "node scripts/check-package-depends.js && node scripts-ts/pre-publish-test.js ./tests-js ./examples-js ./tests-ts ./examples-ts",
     "build-dist": "tsc",
     "build-tests": "tsc -p tsconfig.tests.json",
     "build-all": "npm run build-dist; npm run build-tests",
@@ -47,7 +47,13 @@
     "@tsconfig/node14": "^1.0.0",
     "@tsconfig/recommended": "^1.0.1",
     "@types/node": "^14.14.14",
+    "@typescript-eslint/eslint-plugin": "^4.11.0",
+    "@typescript-eslint/parser": "^4.11.0",
+    "eslint": "^7.16.0",
+    "eslint-config-prettier": "^7.1.0",
+    "eslint-plugin-prettier": "^3.3.0",
     "mini-preproc": "^1.1.2",
+    "prettier": "2.2.1",
     "typescript": "^4.1.3"
   },
   "dependencies": {}
