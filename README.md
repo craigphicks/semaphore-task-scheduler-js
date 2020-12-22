@@ -1,6 +1,4 @@
 copyright 2020 craigphicks ISC license
-task-serializer v2.1.*
-
 
 TaskSerializer
 ---
