@@ -4,7 +4,6 @@ import {createPreprocStream} from 'mini-preproc';
 import {create} from 'domain';
 import assert=require('assert');
 
-
 /*
  - js files
    - mini preproc (RELEASE:true/NODEJS:[true.false])
@@ -15,17 +14,11 @@ import assert=require('assert');
      - also write approroate tsconfig.js
 */
 
-const filenames=[
-  //"demo-all.sh",
-  "demo-async-iter",
-  "demo-callbacks",
-  "demo-next-symbol",
-  "demo-wait-all",
-  "demo-lib",
-];
 
-async function doOne(srcdir:string,dstdir:string,isTS:boolean,
+async function doOne(filenames:string[],srcdir:string,dstdir:string,isTS:boolean,
   nonodeSubdir:string,nodeSubdir:string):Promise<void>{
+  assert.strict(Array.isArray(filenames));
+  assert.strictEqual(typeof filenames[0],"string");
   assert.strictEqual(typeof srcdir,"string");
   assert.strictEqual(typeof dstdir,"string");
   assert.strictEqual(typeof isTS,"boolean");

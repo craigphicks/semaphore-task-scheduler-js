@@ -1,4 +1,6 @@
 copyright 2020 craigphicks ISC license
+task-serializer v2.1.*
+
 
 TaskSerializer
 ---
@@ -22,11 +24,27 @@ The module is not dependent upon NodeJS, so can be used in browser code.
 
 ## Note on shared demo functions
 
-To make the examples more readable some shared function are used. [They are listed at the end](#demo-libjs) of the examples.  
+To make the examples more readable some shared function are used. [They are listed at the end](#demo-libjs) of these examples.  
 
 One of those shared functions is the async function `producer()`. It inputs the tasks by calling `install.addTask(...)` staggered over time, followed by `install.addEnd()`. Some of those tasks throw `Errors`, other resolve normally.   
 
-All the below example code is availalable in the `example-usages` subdirectory of the installed node module, e.g., `node_modules/task-serializer/usage-examples`.
+## Typescript
+
+Typescript `.d.tds` files are bundled with the modules.  Section [*Typescript usage examples*](#typescript-usage-examples) lists typescript versions of the javascript examples below. 
+
+# Automatic creation of examples
+
+Both the JS and TS version of the examples can be create by calling 
+```
+source node_modules/task-serializer/scripts/post-install-demo.sh
+```
+from the npm project directory from which `npm install task-serializer` was called.  Two directories `demo-js` and `demo-ts` are created, and all the examples are run. 
+
+The `ts` setup has some side effects (e.g., install `typescript` locally), and to avoid that 
+```
+source node_modules/task-serializer/scripts/post-install-demo-jsonly.sh
+```
+should be called instead.
 
 ## `AsyncIter` usage example
 [API](#asynciter-only-api)
@@ -47,7 +65,7 @@ async function consumer(ai){
   }while(true);
 }
 async function main(){
-  let ai=new AsyncIter(2);
+  let ai=new AsyncIter({concurrentTaskLimit:2});
   await Promise.all([producer(ai),consumer(ai)]);
 }
 main()
@@ -289,22 +307,7 @@ Read-buffered classes prioritize rejected-values over resolved-values, and pass 
 
 ## Termination
 
-There is no active termination method, but there is passive termination when `instance` is no longer referenced, or processing is deliberately abandoned.
-
-The following two cases are important:
-- *termination-after-all-finished*
-  - In this case the only possible references in the class state are to a buffer of read values.  The class will successfully be garbage collected.
-- *termination-before-all-finished*
-  - In this case at least one task/promise has not resolved or rejected.  The class is not guaranteed to garbage collect in this case.  However, if the JS engine is able to determine that for each task/promise not resolved or rejected, that task/promise is deadlocked(/*), then the class might be garbage collected.  
-
-(/*) 'Deadlocked' means a task/promise is waiting on a promise, but there is no possibility that the waited-on-promise can be resolved.  The prototypical example of such a promise is `new Promise(()=>{})`.  More typically interconnected promises deadlock in a practical example of the [Dining Philosopher's Problem](https://en.wikipedia.org/wiki/Dining_philosophers_problem).  Note that in JS, this will NOT happen to a promise directly or indirectly waiting upon external input, e.g., when waiting upon `process.stdin` while `process.stdin` is active.  
-
-In case of running under nodeJS, There is another important termination case:
-
-- *termination-due-to-unexpected-deadlock*
-  - In the case of nodeJS, when the internal nodeJS event queue becomes empty, nodeJS may decide that the async function referencing our class `instance` is deadlocked, and cause that async function to return. This can be very confusing.  However, in the author's experience, the deadlock is always real - i.e., it is due to programmer error.
-
-  - The nodeJS function `process.onBeforeExit()`, can be helpful in diagnosing unexpected deadlock.  It sets a callback which will be called when nodeJS diagnoses the whole program as being "in deadlock". Example code using `process.onBeforeExit()` can found under the node module `node_modules/task-serializer/usage-examples-nodejs-only/demo-lib.js`.
+There is no active termination method.  The TaskSerializer class instances always wait for added tasks to reach *finished*. Therefore, if the task deadlocks or runs forever, the class instance does not terminate.    
 
 # APIs
 
@@ -421,3 +424,145 @@ The following are informational functions available only in the read-buffered cl
   - Each `instance.on<*>`function must be called before the instance has reached the *processing* milestone, i.e., before the first call to `addTask`.
 
 
+# Typescript usage examples
+
+## `AsyncIter` usage example (typescript)
+```typescript
+import {AsyncIter} from 'task-serializer'
+import {producer} from './demo-lib';
+async function consumer(ai: AsyncIter){
+  do{
+    try{
+      for await(const res of ai){
+        console.log('    '+JSON.stringify(res));
+      }
+      break;
+    }catch(e){
+      console.log('    '+'error: '+e.message);
+    }
+  }while(true);
+}
+async function main(){
+  let ai=new AsyncIter({concurrentTaskLimit:2});
+  await Promise.all([producer(ai),consumer(ai)]);
+}
+main()
+  .then(()=>{console.log('success');})
+  .catch((e)=>{console.log('failure '+e.message);});
+```
+
+## `NextSymbol` usage example (typescript)
+```typescript
+import {NextSymbol} from 'task-serializer';
+import {makepr,producer} from './demo-lib.js';
+var somethingElse=makepr();
+var iv=setInterval(()=>{somethingElse.resolve("somethingElse");},300);  
+async function consumer(ts: NextSymbol){
+  let emptied=false;
+  while(!emptied){
+    let next = await Promise.race([
+      somethingElse.promise,
+      ts.nextSymbol(),
+    ]);
+    switch(next){
+    case "somethingElse":
+      console.log(next);
+      somethingElse=makepr();// reset
+      break;
+    case ts.symbolTaskResolved():{
+      console.log();
+      let res=ts.getTaskResolvedValue();
+      console.log("symbolTaskResolved, result="+res);
+      break;}
+    case ts.symbolTaskRejected():{
+      let e=ts.getTaskRejectedValue();
+      console.log("symbolTaskRejected, message="+e.message);
+      break;}
+    case ts.symbolAllRead():{
+      console.log("symbolAllRead");
+      emptied=true;
+      clearInterval(iv);
+      break;}
+    }
+  }
+}
+async function main(){
+  let ts=new NextSymbol({concurrentTaskLimit:2});
+  await Promise.all([consumer(ts),producer(ts)]);
+}
+main()
+  .then(()=>{console.log('success');})
+  .catch((e)=>{console.log('failure '+e.message);});
+```
+
+## `Callbacks` usage example (typescript)
+```typescript
+import {Callbacks} from 'task-serializer';
+const {producer} from './demo-lib.js';
+async function consumer(ts: Callbacks){
+  await new Promise<void>((resolve)=>{
+    ts.onTaskResolved((resolvedValue:any)=>{
+      console.log(`onTaskResolved ${resolvedValue}`);
+    });
+    ts.onTaskRejected((rejectedValue)=>{
+      console.log(`onTaskRejected ${rejectedValue}`);
+    });
+    ts.onEmpty(()=>{
+      console.log(`onEmpty`);
+      resolve();
+    });
+  });
+  console.log('consumer finished');
+}
+async function main(){
+  let ts=new Callbacks({concurrentTaskLimit:2});
+  await Promise.all([
+    consumer(ts),// consumer must initialize first
+    producer(ts)
+  ]);
+}
+main()
+  .then(()=>{console.log('success');})
+  .catch((e)=>{console.log('failure '+e.message);});
+```
+
+## `WaitAll` usage example (typescript)
+```typescript
+import {WaitAll} from 'task-serializer';
+import {producer} from './demo-lib.js';
+async function consumer_waitAll(ts: WaitAll){
+  try{
+    let r=await ts.waitAll();
+    console.log(`ts.waitAll() returned`);
+    console.log(JSON.stringify(r,null,2));
+  }catch(e){
+    console.log(`ts.waitAll() caught ${e.message}`);
+  }
+}
+async function consumer_waitAllSettled(ts: WaitAll){
+  let r=await ts.waitAllSettled();
+  console.log(`ts.waitAllSettled() returned`);
+  console.log(JSON.stringify(r,null,2));
+  console.log('consumer finished');
+}
+async function main(){
+  let waitAll=new WaitAll({concurrentTaskLimit:2});
+  await Promise.all([
+    consumer_waitAll(waitAll),
+    producer(waitAll),
+  ]);
+  waitAll=new WaitAll({concurrentTaskLimit:2});
+  await Promise.all([
+    consumer_waitAllSettled(waitAll),
+    producer(waitAll),
+  ]);
+}
+main()
+  .then(()=>{console.log('success');})
+  .catch((e)=>{console.log('failure '+e.message);});
+```
+
+# History
+- 2.1.0 
+  - typescript interface provided (source also typescript)
+  - fixed incorrect parameters in example code

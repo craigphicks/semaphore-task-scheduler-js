@@ -1,7 +1,7 @@
 //--IF{{RELEASE}}
-//--import {AsyncIter,NextSymbol} from 'task-serializer';
+//--import {AsyncIter,Callbacks,NextSymbol, WaitAll} from 'task-serializer';
 //--ELSE
-import {AsyncIter,Callbacks,NextSymbol, WaitAll} from '../dist/index';
+import {AsyncIter,Callbacks,NextSymbol,WaitAll} from '../dist/index';
 //--ENDIF
 function snooze(ms:number){return new Promise(r=>setTimeout(r,ms));}
 function range(len:number){return [...Array(len).keys()];}
@@ -36,7 +36,7 @@ async function task(id: any,ms: number,err=false){
   console.log(`<--leave ${id}`);
   return `task ${id}, took ${ms}ms`;
 }
-async function producer(ts: AsyncIter | NextSymbol | Callbacks | WaitAll){
+async function producer(ts:AsyncIter|NextSymbol|Callbacks|WaitAll){
   for (let i=0; i<6; i++){
 //--IF{{RELEASE}}
 //--ELSE

@@ -1,11 +1,11 @@
 import genExamples from './gen-examples'
-
+import demoFilenames from './demo-filenames'
 (async()=>{
   await Promise.all([
     // @ts-ignore
-    genExamples(...process.argv.slice(2,4),false,"any","nodejs"),
+    genExamples(demoFilenames,...process.argv.slice(2,4),false,"any","nodejs"),
     // @ts-ignore
-    genExamples(...process.argv.slice(4,6),true,"any","nodejs")
+    genExamples(demoFilenames,...process.argv.slice(4,6),true,"any","nodejs")
   ])  
 })()
 .then(()=>{process.exitCode=0;})
