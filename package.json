@@ -1,10 +1,11 @@
 {
   "name": "task-serializer",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "Serialize tasks/promises for integrated control. Option for limiting number of concurrent tasks.",
   "main": "dist/index.js",
   "files": [
-    "dist/*.js","dist/*.d.ts",
+    "dist/*.js",
+    "dist/*.d.ts",
     "tests-js/demo-*.js",
     "scripts-ts/post-install-demo.js",
     "scripts-ts/demo-filenames.js",
@@ -15,12 +16,11 @@
     "tests-ts/demo-next-symbol.ts",
     "tests-ts/demo-wait-all.ts",
     "scripts/post-install-demo.sh",
-    "scripts/post-install-demo-jsonly.sh" 
+    "scripts/post-install-demo-jsonly.sh"
   ],
   "scripts": {
     "test": "node ./tests-js/script-test.js;node ./tests-ts/script-test.js",
     "pre-publish": "node scripts-ts/pre-publish-test.js ./tests-js ./examples-js ./tests-ts ./examples-ts",
-
     "build-dist": "tsc",
     "build-tests": "tsc -p tsconfig.tests.json",
     "build-all": "npm run build-dist; npm run build-tests",
