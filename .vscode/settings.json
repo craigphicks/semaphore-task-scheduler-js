@@ -8,5 +8,6 @@
     "typescript.tsdk": "node_modules/typescript/lib",
     "eslint.workingDirectories": [
     
-    ]
+    ],
+    "eslint.lintTask.options": "npx eslint"
 }

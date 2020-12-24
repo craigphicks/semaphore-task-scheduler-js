@@ -12,11 +12,12 @@ import genExamples from './gen-examples';
   It is a dev test to verify a prototype install. 
 */
 
-function promit(func: Function, ...args: any[]): Promise<any> {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function promit(func: (...args: any) => any, ...args: any[]): Promise<any> {
   return new Promise((resolve, reject) => {
-    let cb_outer = (...cbargs: any[]) => {
+    const cb_outer = (...cbargs: any[]) => {
       try {
-        let r = args.slice(-1)[0](...cbargs);
+        const r = args.slice(-1)[0](...cbargs);
         resolve(r);
       } catch (e) {
         reject(e);
@@ -32,7 +33,7 @@ async function exec(cmd: string) {
     cmd,
     (err: void | Error, stdout: Buffer | string, stderr: Buffer | string) => {
       if (err) {
-        let msg = `
+        const msg = `
     ==================
     ::: ${cmd} ::: 
     ${err.message}
@@ -86,10 +87,11 @@ async function setupTypescript(tsDstDir_: string) {
     tsDstDir.slice(0, 2) !== './'
   )
     tsDstDir = './' + tsDstDir;
-  let proms: Promise<any>[] = [];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const proms: Promise<any>[] = [];
   for (let i = 0; i < 2; i++) {
-    let rootRelFns: string[] = [];
-    for (let f of demoFilenames)
+    const rootRelFns: string[] = [];
+    for (const f of demoFilenames)
       rootRelFns.push(`${tsDstDir}/${tsconfMnem[i]}/${f}.ts`);
     proms.push(
       fsp
@@ -109,7 +111,7 @@ async function setupTypescript(tsDstDir_: string) {
       console.log('[OK] npm install --save-dev typescript');
       cp.execSync('npm install --save-dev @types/node');
       console.log('[OK] npm install --save-dev @types/node');
-      for (let mnem of tsconfMnem) {
+      for (const mnem of tsconfMnem) {
         cp.execSync(`npm install --save-dev @tsconfig/${mnem}`);
         console.log('[OK] ' + `npm install --save-dev @tsconfig/${mnem}`);
       }
@@ -118,10 +120,11 @@ async function setupTypescript(tsDstDir_: string) {
 }
 
 async function demos(dstDir: string) {
-  let proms: Promise<any>[] = [];
-  for (let mnem of tsconfMnem) {
-    for (let f of demoFilenames) {
-      let fn = `node ${dstDir}/${mnem}/${f}.js`;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const proms: Promise<any>[] = [];
+  for (const mnem of tsconfMnem) {
+    for (const f of demoFilenames) {
+      const fn = `node ${dstDir}/${mnem}/${f}.js`;
       proms.push(exec(fn));
     }
   }
@@ -141,13 +144,14 @@ async function demos(dstDir: string) {
   }
   await Promise.all([
     (async () => {
-      let jsDstDir = process.argv[3];
-      // @ts-ignore
+      const jsDstDir = process.argv[3];
       await genExamples(
         demoFilenames,
-        process.argv[2],process.argv[3],
+        process.argv[2],
+        process.argv[3],
         false,
-        tsconfMnem[0],tsconfMnem[1],
+        tsconfMnem[0],
+        tsconfMnem[1]
       ).then(() => {
         console.log('[OK] genExamples js');
       }); //js
@@ -157,12 +161,12 @@ async function demos(dstDir: string) {
     })(),
     (async () => {
       if (!doTS) return Promise.resolve();
-      let tsDstDir = process.argv[5];
+      const tsDstDir = process.argv[5];
       await Promise.all([
-        // @ts-ignore
         genExamples(
           demoFilenames,
-          process.argv[4],process.argv[5],
+          process.argv[4],
+          process.argv[5],
           true,
           tsconfMnem[0],
           tsconfMnem[1]

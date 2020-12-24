@@ -17,6 +17,7 @@ module.exports = {
     //"plugin:@typescript-eslint/recommended-requiring-type-checking",
   ],
   rules: {
+    '@typescript-eslint/no-var-requires': 0,
     '@typescript-eslint/no-inferrable-types': [
       2,
       {
@@ -25,6 +26,13 @@ module.exports = {
       },
     ],
     '@typescript-eslint/no-empty-function': [0],
+    '@typescript-eslint/no-explicit-any': [
+      1,
+      {
+        fixToUnknown: false,
+        ignoreRestArgs: true,
+      },
+    ],
     'prettier/prettier': [
       1,
       {},
@@ -48,7 +56,7 @@ module.exports = {
         ecmaVersion: 12,
       },
       rules: {
-        indent: ['error', 2],
+        indent: 0, // ['error', 2] conflicting with prettier
         'linebreak-style': ['error', 'unix'],
         semi: ['error', 'always'],
       },

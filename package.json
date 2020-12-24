@@ -19,17 +19,21 @@
     "scripts/post-install-demo-jsonly.sh"
   ],
   "scripts": {
-    "test": "node ./tests-js/script-test.js;node ./tests-ts/script-test.js",
-    "prepublishOnly": "node scripts/check-package-depends.js && node scripts-ts/pre-publish-test.js ./tests-js ./examples-js ./tests-ts ./examples-ts",
+    "test": "npm run clean-all && node scripts/check-package-depends.js && npx eslint && npm run build-all && npm run test-scripts && node scripts-ts/pre-publish-test.js ./tests-js ./examples-js ./tests-ts ./examples-ts && node scripts/verda-pub-test.js",
+    "prePublishOnly": "npm run prePublishShort",
+
+    "test-scripts": "node ./tests-js/script-test.js && node ./tests-ts/script-test.js",
+    "prePublishShort": "node scripts/check-package-depends.js && npx eslint",    
     "build-dist": "tsc",
     "build-tests": "tsc -p tsconfig.tests.json",
     "build-all": "npm run build-dist; npm run build-tests",
     "clean-dist": "rm dist/*",
-    "clean-tests": "bash -c 'rm -f tests-ts/*.{js,js.map,d.ts}; rm -f scripts-ts/*.{js,js.map,d.ts}' ; rm -f dist-*/*; rmdir dist-* 2>/dev/null || true ; ",
-    "clean-all": "npm run clean-dist; npm run clean-tests"
+    "clean-tests": "bash -c 'rm -f tests-ts/*.{js,js.map,d.ts} && rm -f scripts-ts/*.{js,js.map,d.ts}' &&  rm -rf examples*",
+    "clean-all": "npm run clean-dist && npm run clean-tests"
   },
+  "devConfig": {"verdaccioUrl":"http://127.0.0.1:44873"},
   "engines": {
-    "node": ">=12.9"
+    "node": ">=10.13"
   },
   "keywords": [
     "top down",

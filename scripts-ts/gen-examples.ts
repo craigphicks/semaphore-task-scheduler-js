@@ -1,7 +1,6 @@
 import {promises as fsp} from 'fs';
 import fs = require('fs');
 import {createPreprocStream} from 'mini-preproc';
-import {create} from 'domain';
 import assert = require('assert');
 
 /*
@@ -29,17 +28,19 @@ async function doOne(
   assert.strictEqual(typeof isTS, 'boolean');
   assert.strictEqual(typeof nonodeSubdir, 'string');
   assert.strictEqual(typeof nodeSubdir, 'string');
-  let ext = isTS ? '.ts' : '.js';
-  let subdirs: string[] = [nonodeSubdir, nodeSubdir];
+  const ext = isTS ? '.ts' : '.js';
+  const subdirs: string[] = [nonodeSubdir, nodeSubdir];
   await fsp.rmdir(dstdir, {recursive: true});
   await fsp.mkdir(dstdir + '/' + subdirs[0], {recursive: true});
   await fsp.mkdir(dstdir + '/' + subdirs[1], {recursive: true});
-  let proms: Promise<any>[] = [];
-  for (let fn of filenames) {
-    let fnin = srcdir + '/' + fn + ext;
-    for (let isnodejs of [false, true]) {
-      let fnout = dstdir + '/' + subdirs[Number(isnodejs)] + '/' + fn + ext;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const proms: Promise<any>[] = [];
+  for (const fn of filenames) {
+    const fnin = srcdir + '/' + fn + ext;
+    for (const isnodejs of [false, true]) {
+      const fnout = dstdir + '/' + subdirs[Number(isnodejs)] + '/' + fn + ext;
       proms.push(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         new Promise<any>((resolve, reject) => {
           fs.createReadStream(fnin)
             .pipe(
